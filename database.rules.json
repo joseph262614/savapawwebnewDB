@@ -1,0 +1,238 @@
+{
+  "rules": {
+
+    "users": {
+      // Only logged-in users can list/query all user profiles
+      ".read": "auth != null",
+      ".indexOn": ["username", "email", "role", "isVerified", "isAdmin", "isBanned"],
+      "$uid": {
+        // Individual profiles can only be read by authenticated users
+        ".read": "auth != null",
+        // User can edit their own profile, OR an admin can edit
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+
+        "isAdmin": {
+          // Only an existing Admin can make someone an admin
+          ".validate": "newData.isBoolean() && ((!data.exists() && newData.val() == false) || (data.exists() && newData.val() == data.val()) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+        },
+        "isVerified": {
+          // Only Admins can change the verification status to true
+          ".validate": "newData.isBoolean() && ((!data.exists() && newData.val() == false) || (data.exists() && newData.val() == data.val()) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+        },
+        "isBanned": {
+          // Only Admins can change the ban status
+          ".validate": "newData.isBoolean() && ((!data.exists() && newData.val() == false) || (data.exists() && newData.val() == data.val()) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+        },
+        "restrictPostings": {
+          ".validate": "newData.isBoolean() && ((!data.exists() && newData.val() == false) || (data.exists() && newData.val() == data.val()) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+        },
+        "restrictAdoptions": {
+          ".validate": "newData.isBoolean() && ((!data.exists() && newData.val() == false) || (data.exists() && newData.val() == data.val()) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+        },
+        "restrictReporting": {
+          ".validate": "newData.isBoolean() && ((!data.exists() && newData.val() == false) || (data.exists() && newData.val() == data.val()) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+        },
+        "role": {
+          // Allow selection during registration (except admin), but only Admin can change it later
+          ".validate": "(!data.exists() && newData.val().toLowerCase() != 'admin') || (data.exists() && newData.val() == data.val()) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true"
+        }
+      }
+    },
+
+    "usernames": {
+      // Username -> email index used for username login (readable per-key only, not listable)
+      "$username": {
+        ".read": true,
+        ".write": "auth != null && (!data.exists() || data.child('uid').val() == auth.uid)",
+        ".validate": "newData.hasChildren(['uid', 'email']) && newData.child('uid').val() == auth.uid"
+      }
+    },
+
+    "adoptionCenter": {
+      // Anyone can browse available pets for adoption (public read-only catalog)
+      ".read": true,
+      ".indexOn": ["category", "fosterId", "isAdopted", "breed"],
+      "$petId": {
+        // Only Verified Fosters or Admins can post pets, but author can delete or center/foster mark adopted
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' && root.child('users').child(auth.uid).child('isVerified').val() == true) || (data.exists() && data.child('fosterId').val() == auth.uid) || (data.exists() && (newData.child('isAdopted').val() == true || newData.child('isAdopted').val() == false)))",
+        // Breed is optional so fosters can proceed without filling it in
+        ".validate": "newData.hasChildren(['name', 'age', 'imageUrl', 'fosterId', 'category'])"
+      }
+    },
+
+    "reports": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer')",
+      ".indexOn": ["userId", "timestamp", "status"],
+      "$reportId": {
+        ".read": "auth != null && (data.child('userId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('isVerified').val() == true)",
+        // Verified users, volunteers, admins or author can write/update report
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('isVerified').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || (data.exists() && data.child('userId').val() == auth.uid))"
+      }
+    },
+
+    "verificationRequests": {
+      // Admins can read all verification requests
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+      ".indexOn": ["status"],
+      "$uid": {
+        // A user can read their own request
+        ".read": "auth != null && auth.uid == $uid",
+        // A user can submit their own request; Admins can approve/reject
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+      }
+    },
+
+    "system_messages": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        "$msgId": {
+          ".write": "auth != null"
+        }
+      }
+    },
+
+    "adoption_inquiries": {
+      // Authenticated users can read and query adoption inquiries
+      ".read": "auth != null",
+      // Indexed fields for pass-verification, status filtering, and user queries
+      ".indexOn": ["adopterUid", "fosterId", "petId", "adoptionCode", "status"],
+      "$inquiryId": {
+        // Either adopter, foster, or admin can create or update an inquiry
+        ".write": "auth != null && (!data.exists() ? (newData.child('adopterUid').val() == auth.uid || newData.child('fosterId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true) : (data.child('adopterUid').val() == auth.uid || data.child('fosterId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true))",
+        ".validate": "newData.hasChildren(['petId', 'fosterId', 'adopterUid'])"
+      }
+    },
+
+    "chats": {
+      "$chatId": {
+        ".read": "auth != null && ($chatId.contains(auth.uid) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        ".write": "auth != null && ($chatId.contains(auth.uid) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        "messages": {
+          "$msgId": {
+            // Allows messages from sender or automated system announcements (e.g. foster approval / terms agreement)
+            ".validate": "newData.hasChildren(['senderUid', 'text', 'timestamp']) && (newData.child('senderUid').val() == auth.uid || newData.child('senderUid').val() == 'system')"
+          }
+        }
+      }
+    },
+
+    "user_chats": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null",
+        ".indexOn": ["lastTimestamp"]
+      }
+    },
+
+    "posts": {
+      // Anyone can read community posts (guests & logged-in users)
+      ".read": true,
+      ".indexOn": ["timestamp", "userId"],
+      "$postId": {
+        // Author or Admin can edit/delete post
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        ".validate": "newData.hasChildren(['userId', 'timestamp']) && (!data.exists() ? newData.child('userId').val() == auth.uid : true)",
+        "likes": {
+          // Logged-in users can like/unlike posts
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid"
+          }
+        },
+        "commentsCount": {
+          // Allow authenticated users to update comment count
+          ".write": "auth != null"
+        }
+      }
+    },
+
+    "comments": {
+      // Anyone can read comments (guests & logged-in users)
+      ".read": true,
+      "$postId": {
+        ".write": "auth != null && (!data.exists() || root.child('posts').child($postId).child('userId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        "$commentId": {
+          ".write": "auth != null && (!data.exists() || data.child('userId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+          ".validate": "newData.hasChildren(['userId', 'text', 'timestamp']) && (!data.exists() ? newData.child('userId').val() == auth.uid : true)"
+        }
+      }
+    },
+
+    "reported_posts": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+      ".indexOn": ["status", "timestamp", "postId"],
+      "$reportId": {
+        ".write": "auth != null && (!data.exists() || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+      }
+    },
+
+    "locations": {
+      "$uid": {
+        ".read": "auth != null && ($uid == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('isVerified').val() == true)",
+        ".write": "auth != null && auth.uid == $uid",
+        ".validate": "newData.hasChildren(['lat', 'lng', 'timestamp'])"
+      }
+    },
+
+    "activity_feed": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null"
+      }
+    },
+
+    "donation_info": {
+      ".read": true,
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+    },
+
+    "admin_support_queue": {
+      ".read": "auth != null",
+      ".indexOn": ["status", "joinedAt"],
+      "$uid": {
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+      }
+    },
+
+    "admin_support_chats": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+      ".indexOn": ["status", "lastTimestamp", "userUid"],
+      "$chatId": {
+        ".read": "auth != null && ($chatId.contains(auth.uid) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        ".write": "auth != null && ($chatId.contains(auth.uid) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        "messages": {
+          "$msgId": {
+            ".write": "auth != null && ($chatId.contains(auth.uid) || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+          }
+        }
+      }
+    },
+
+    "announcements": {
+      // Anyone can read announcements (guests & logged-in users)
+      ".read": true,
+      ".indexOn": ["timestamp", "category", "priority"],
+      "$announcementId": {
+        // Only Admins can create, update, or remove announcements
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        ".validate": "newData.hasChildren(['title', 'message', 'timestamp'])"
+      }
+    },
+
+    "adoption_cancellations": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null && ($uid == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        ".write": "auth != null && ($uid == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+      }
+    },
+
+    "reported_users": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+      ".indexOn": ["timestamp", "reportedUid", "status"],
+      "$reportId": {
+        ".write": "auth != null"
+      }
+    }
+  }
+}

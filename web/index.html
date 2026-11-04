@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="SAVEAPAW Admin Dashboard - Pet Rescue & Adoption Management Portal">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="SAVEAPAW Admin">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>SAVEAPAW Admin</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Preconnect to Google Fonts for instant typographic delivery -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+  <script>
+    (async function() {
+      try {
+        var hadController = false;
+        if ('serviceWorker' in navigator) {
+          hadController = !!navigator.serviceWorker.controller;
+          var registrations = await navigator.serviceWorker.getRegistrations();
+          for (var i = 0; i < registrations.length; i++) {
+            await registrations[i].unregister();
+          }
+        }
+        if ('caches' in window) {
+          var keys = await caches.keys();
+          for (var j = 0; j < keys.length; j++) {
+            await caches.delete(keys[j]);
+          }
+        }
+        if (hadController && !sessionStorage.getItem('sw_purged_v3')) {
+          sessionStorage.setItem('sw_purged_v3', '1');
+          window.location.reload();
+          return;
+        }
+      } catch (e) {
+        console.warn('Cache purge warning:', e);
+      }
+      var s = document.createElement('script');
+      s.src = 'flutter_bootstrap.js?v=20261104_3';
+      s.async = true;
+      document.body.appendChild(s);
+    })();
+  </script>
+</body>
+</html>
