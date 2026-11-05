@@ -53,8 +53,8 @@
       ".read": true,
       ".indexOn": ["category", "fosterId", "isAdopted", "breed"],
       "$petId": {
-        // Only Verified Fosters or Admins can post pets, but author can delete or center/foster mark adopted
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' && root.child('users').child(auth.uid).child('isVerified').val() == true) || (data.exists() && data.child('fosterId').val() == auth.uid) || (data.exists() && (newData.child('isAdopted').val() == true || newData.child('isAdopted').val() == false)))",
+        // Only Verified Fosters or Admins can post pets, and author or admin can update/delete
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || (!data.exists() && root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' && root.child('users').child(auth.uid).child('isVerified').val() == true) || (data.exists() && data.child('fosterId').val() == auth.uid))",
         // Breed is optional so fosters can proceed without filling it in
         ".validate": "newData.hasChildren(['name', 'age', 'imageUrl', 'fosterId', 'category'])"
       }

@@ -7,46 +7,58 @@ service firebase.storage {
       allow read: if request.auth != null;
     }
 
-    // Reports images: User can only write to their own UID folder
+    // Reports images: User can create/update to their own UID folder; author or admin can delete
     match /reports/{userId}/{fileName} {
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 5 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+                           && request.resource.size < 5 * 1024 * 1024
+                           && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'admin' || request.auth.token.isAdmin == true);
     }
 
     // Community Feed Posts images
     match /posts/{userId}/{fileName} {
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 5 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+                           && request.resource.size < 5 * 1024 * 1024
+                           && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'admin' || request.auth.token.isAdmin == true);
     }
 
     // Verification documents
     match /verifications/{userId}/{fileName} {
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 10 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'admin' || request.auth.token.isAdmin == true);
+      allow create, update: if request.auth != null && request.auth.uid == userId
+                           && request.resource.size < 10 * 1024 * 1024
+                           && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && (request.auth.uid == userId || request.auth.token.role == 'admin' || request.auth.token.isAdmin == true);
     }
 
     // Avatars
     match /avatars/{userId}/{fileName} {
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 2 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+                           && request.resource.size < 2 * 1024 * 1024
+                           && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
     
     // Adoption Center pets
     match /adoptionCenter/{fileName} {
-      allow write: if request.auth != null
+      allow read: if true;
+      allow create, update: if request.auth != null
                    && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null;
     }
 
     // Donation QR code images
     match /donations/{fileName} {
-      allow write: if request.auth != null
+      allow read: if true;
+      allow create, update: if request.auth != null
                    && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null;
     }
   }
 }

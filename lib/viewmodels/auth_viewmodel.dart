@@ -22,6 +22,7 @@ class AuthViewModel extends ChangeNotifier {
   Map<dynamic, dynamic>? get userData => _userData;
 
   StreamSubscription<DatabaseEvent>? _userSubscription;
+  StreamSubscription<User?>? _authSubscription;
 
   AuthViewModel();
 
@@ -30,7 +31,8 @@ class AuthViewModel extends ChangeNotifier {
     _isInitialized = true;
     _isAuthChecking = true;
 
-    _auth.authStateChanges().listen((User? user) async {
+    _authSubscription?.cancel();
+    _authSubscription = _auth.authStateChanges().listen((User? user) async {
       _user = user;
       if (user != null) {
         final isAdminFresh = await checkIfAdmin(user.uid);
@@ -58,8 +60,8 @@ class AuthViewModel extends ChangeNotifier {
     _userSubscription?.cancel();
 
     _userSubscription = _db.ref().child('users').child(uid).onValue.listen((event) {
-      if (event.snapshot.exists && event.snapshot.value != null) {
-        final data = event.snapshot.value as Map<dynamic, dynamic>;
+      if (event.snapshot.exists && event.snapshot.value != null && event.snapshot.value is Map) {
+        final data = Map<String, dynamic>.from(event.snapshot.value as Map);
         _userData = data;
         final role = (data['role']?.toString() ?? '').trim().toLowerCase();
         final isNowAdmin = role == 'admin';
@@ -242,5 +244,12 @@ class AuthViewModel extends ChangeNotifier {
     final emailToSend = email ?? _user?.email;
     if (emailToSend == null) return "Email not found";
     try { await _auth.sendPasswordResetEmail(email: emailToSend); return null; } catch (e) { return e.toString(); }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    _userSubscription?.cancel();
+    super.dispose();
   }
 }

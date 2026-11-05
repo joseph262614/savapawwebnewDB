@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
   List<Map<String, dynamic>> _posts = [];
   bool _isLoadingPosts = true;
   String _postsSearchQuery = '';
+  StreamSubscription<DatabaseEvent>? _postsSubscription;
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
 
   @override
   void dispose() {
+    _postsSubscription?.cancel();
     _tabController.dispose();
     super.dispose();
   }
@@ -55,7 +58,8 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
   }
 
   void _listenToPosts() {
-    _db.child('posts').onValue.listen((event) {
+    _postsSubscription?.cancel();
+    _postsSubscription = _db.child('posts').onValue.listen((event) {
       if (!mounted) return;
       final snapshot = event.snapshot;
       List<Map<String, dynamic>> fetched = [];
@@ -74,8 +78,8 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
       }
 
       fetched.sort((a, b) {
-        final tA = a['timestamp'] is int ? a['timestamp'] as int : 0;
-        final tB = b['timestamp'] is int ? b['timestamp'] as int : 0;
+        final tA = (a['timestamp'] as num?)?.toInt() ?? 0;
+        final tB = (b['timestamp'] as num?)?.toInt() ?? 0;
         return tB.compareTo(tA);
       });
 

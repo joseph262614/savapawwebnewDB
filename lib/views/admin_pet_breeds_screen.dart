@@ -1531,32 +1531,28 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
 
                         try {
                           final db = FirebaseDatabase.instance.ref();
+                          final Map<String, dynamic> atomicUpdates = {
+                            'adoption_inquiries/$inquiryId/status': 'completed',
+                            'adoption_inquiries/$inquiryId/petRetrieved': true,
+                            'adoption_inquiries/$inquiryId/isHandedOver': true,
+                            'adoption_inquiries/$inquiryId/handoverCompletedAt': ServerValue.timestamp,
+                            'adoption_inquiries/$inquiryId/handoverVerifiedBy': 'Center Admin',
+                            'adoption_inquiries/$inquiryId/updatedAt': ServerValue.timestamp,
+                          };
 
-                          // 1. Update adoption inquiry to completed & retrieved
-                          await db.child('adoption_inquiries').child(inquiryId).update({
-                            'status': 'completed',
-                            'petRetrieved': true,
-                            'isHandedOver': true,
-                            'handoverCompletedAt': ServerValue.timestamp,
-                            'handoverVerifiedBy': 'Center Admin',
-                            'updatedAt': ServerValue.timestamp,
-                          });
-
-                          // 2. Mark pet adopted and retrieved in adoptionCenter catalog
                           if (petId.isNotEmpty) {
-                            await db.child('adoptionCenter').child(petId).update({
-                              'isAdopted': true,
-                              'status': 'Adopted',
-                              'petRetrieved': true,
-                              'adoptedBy': adopterUid,
-                              'adoptedByName': adopterName,
-                              'adoptedAt': ServerValue.timestamp,
-                            });
+                            atomicUpdates['adoptionCenter/$petId/isAdopted'] = true;
+                            atomicUpdates['adoptionCenter/$petId/status'] = 'Adopted';
+                            atomicUpdates['adoptionCenter/$petId/petRetrieved'] = true;
+                            atomicUpdates['adoptionCenter/$petId/isHandedOver'] = true;
+                            atomicUpdates['adoptionCenter/$petId/adoptedBy'] = adopterUid;
+                            atomicUpdates['adoptionCenter/$petId/adoptedByName'] = adopterName;
+                            atomicUpdates['adoptionCenter/$petId/adoptedAt'] = ServerValue.timestamp;
                           }
 
-                          // 3. Send celebratory notification to Adopter
                           if (adopterUid.isNotEmpty) {
-                            await db.child('system_messages').child(adopterUid).push().set({
+                            final adopterMsgKey = db.child('system_messages').child(adopterUid).push().key ?? 'msg_${DateTime.now().millisecondsSinceEpoch}';
+                            atomicUpdates['system_messages/$adopterUid/$adopterMsgKey'] = {
                               'title': 'Handover Verified: $petName is Officially Yours!',
                               'body': 'Your adoption of $petName was verified and marked as retrieved at the center. Congratulations!',
                               'timestamp': ServerValue.timestamp,
@@ -1565,12 +1561,12 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                               'petId': petId,
                               'petName': petName,
                               'inquiryId': inquiryId,
-                            });
+                            };
                           }
 
-                          // 4. Send celebratory notification to Foster
                           if (fosterId.isNotEmpty && fosterId != 'system') {
-                            await db.child('system_messages').child(fosterId).push().set({
+                            final fosterMsgKey = db.child('system_messages').child(fosterId).push().key ?? 'msg_${DateTime.now().millisecondsSinceEpoch}_f';
+                            atomicUpdates['system_messages/$fosterId/$fosterMsgKey'] = {
                               'title': 'Pet Handover Completed: $petName',
                               'body': '$adopterName has claimed $petName at the Adoption Center. Thank you for fostering and saving a life!',
                               'timestamp': ServerValue.timestamp,
@@ -1579,8 +1575,10 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                               'petId': petId,
                               'petName': petName,
                               'inquiryId': inquiryId,
-                            });
+                            };
                           }
+
+                          await db.update(atomicUpdates);
 
                           if (ctx.mounted) Navigator.pop(ctx);
                           if (context.mounted) {

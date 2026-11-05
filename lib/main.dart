@@ -8,7 +8,6 @@ import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/user_management_viewmodel.dart';
 import 'views/login_screen.dart';
 import 'views/admin_screen.dart';
-import 'views/signup_screen.dart';
 import 'views/forgot_password_screen.dart';
 import 'firebase_options.dart';
 
@@ -136,9 +135,10 @@ class SaveAPawAdminApp extends StatelessWidget {
         }
 
         if (path == '/signup') {
+          // Public self-registration is disabled on the Admin portal. Redirect to login.
           return MaterialPageRoute(
             settings: settings,
-            builder: (_) => const SignUpScreen(),
+            builder: (_) => const _LoginAuthGuard(),
           );
         }
 

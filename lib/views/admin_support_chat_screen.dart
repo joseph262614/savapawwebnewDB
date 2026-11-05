@@ -135,13 +135,30 @@ class _AdminSupportChatScreenState extends State<AdminSupportChatScreen>
     try {
       final db = FirebaseDatabase.instance.ref();
 
-      // 1. Mark ticket active in queue
-      await db.child('admin_support_queue').child(userUid).update({
-        'status': 'active',
-        'assignedAdminUid': currentUser.uid,
-        'assignedAdminName': adminName,
-        'acceptedAt': ServerValue.timestamp,
+      // 1. Mark ticket active in queue using atomic transaction to prevent race conditions
+      final queueRef = db.child('admin_support_queue').child(userUid);
+      final txResult = await queueRef.runTransaction((mutableData) {
+        if (mutableData == null) return Transaction.abort();
+        if (mutableData is! Map) return Transaction.abort();
+        final map = Map<String, dynamic>.from(mutableData);
+        if (map['status'] != 'waiting') {
+          return Transaction.abort();
+        }
+        map['status'] = 'active';
+        map['assignedAdminUid'] = currentUser.uid;
+        map['assignedAdminName'] = adminName;
+        map['acceptedAt'] = ServerValue.timestamp;
+        return Transaction.success(map);
       });
+
+      if (!txResult.committed) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('This ticket was already claimed by another administrator.')),
+          );
+        }
+        return;
+      }
 
       // 2. Mark active in chat node
       await db.child('admin_support_chats').child(chatId).update({
@@ -170,6 +187,7 @@ class _AdminSupportChatScreenState extends State<AdminSupportChatScreen>
         'lastTimestamp': ServerValue.timestamp,
       });
 
+      if (!mounted) return;
       setState(() {
         _selectedUserUid = userUid;
         _selectedChatId = chatId;
@@ -253,6 +271,7 @@ class _AdminSupportChatScreenState extends State<AdminSupportChatScreen>
         'closedAt': ServerValue.timestamp,
       });
 
+      if (!mounted) return;
       setState(() {
         if (_selectedTicketData != null) {
           _selectedTicketData!['status'] = 'closed';

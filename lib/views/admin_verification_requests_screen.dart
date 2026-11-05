@@ -486,19 +486,51 @@ class _VerificationDetailContent extends StatelessWidget {
         ),
       );
     }
+    try {
+      final cleanBase64 = base64String.contains(',')
+          ? base64String.split(',').last
+          : base64String;
+      final bytes = base64Decode(cleanBase64.trim());
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.memory(
+            bytes,
+            width: double.infinity,
+            fit: BoxFit.contain,
+            cacheWidth: 800,
+            errorBuilder: (_, __, ___) => _buildFallbackCorruptImage(),
+          ),
+        ),
+      );
+    } catch (_) {
+      return _buildFallbackCorruptImage();
+    }
+  }
+
+  Widget _buildFallbackCorruptImage() {
     return Container(
+      height: 180,
+      width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.memory(
-          base64Decode(base64String.split(',').last),
-          width: double.infinity,
-          fit: BoxFit.contain,
-          cacheWidth: 800,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image, color: Colors.grey.shade400, size: 36),
+            const SizedBox(height: 8),
+            Text('Corrupted or invalid image format', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          ],
         ),
       ),
     );
@@ -507,94 +539,95 @@ class _VerificationDetailContent extends StatelessWidget {
   void _handleAction(BuildContext context, String uid, bool approve) async {
     final reasonController = TextEditingController();
 
-    if (!approve) {
-      final shouldReject = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Reject Verification Request'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Please provide a specific reason so the applicant knows what went wrong and how to fix it:',
-                  style: TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: reasonController,
-                  decoration: const InputDecoration(
-                    labelText: 'Rejection Reason',
-                    hintText: 'e.g., ID photo was blurry, expired document, face mismatch...',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-              child: const Text('Reject Request'),
-            ),
-          ],
-        ),
-      );
-      if (shouldReject != true) return;
-    }
-
     try {
-      final ref = FirebaseDatabase.instance.ref();
-      final String reason = reasonController.text.trim();
-
-      await ref.child('verificationRequests').child(uid).update({
-        'status': approve ? 'approved' : 'rejected',
-        'rejectionReason': approve
-            ? null
-            : (reason.isNotEmpty ? reason : 'ID document could not be validated. Please resubmit with clear photos.'),
-        'reviewedAt': ServerValue.timestamp,
-      });
-
-      if (approve) {
-        await ref.child('users').child(uid).update({'isVerified': true});
-      }
-
-      final messageId = ref.child('system_messages').child(uid).push().key;
-      final String noticeTitle = approve ? 'Account Verified' : 'Verification Request Update';
-      final String noticeBody = approve
-          ? 'Congratulations! Your Save-A-Paws account has been verified.'
-          : (reason.isNotEmpty
-              ? 'Your identity verification was not approved. Reason: "$reason". Please review and submit a clear, valid ID to verify your account.'
-              : 'Your identity verification was not approved. Please ensure your ID photo is clear and valid, then resubmit your request.');
-
-      await ref.child('system_messages').child(uid).child(messageId!).set({
-        'title': noticeTitle,
-        'body': noticeBody,
-        'timestamp': ServerValue.timestamp,
-        'read': false,
-      });
-
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(approve ? 'Account verified successfully.' : 'Verification request rejected.'),
-            backgroundColor: approve ? const Color(0xFF2E7D32) : Colors.red.shade700,
+      if (!approve) {
+        final shouldReject = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Reject Verification Request'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Please provide a specific reason so the applicant knows what went wrong and how to fix it:',
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: reasonController,
+                    decoration: const InputDecoration(
+                      labelText: 'Rejection Reason',
+                      hintText: 'e.g., ID photo was blurry, expired document, face mismatch...',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                child: const Text('Reject Request'),
+              ),
+            ],
           ),
         );
+        if (shouldReject != true) return;
       }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+
+      try {
+        final ref = FirebaseDatabase.instance.ref();
+        final String reason = reasonController.text.trim();
+        final messageId = ref.child('system_messages').child(uid).push().key ?? 'msg_${DateTime.now().millisecondsSinceEpoch}';
+        final String noticeTitle = approve ? 'Account Verified' : 'Verification Request Update';
+        final String noticeBody = approve
+            ? 'Congratulations! Your Save-A-Paws account has been verified.'
+            : (reason.isNotEmpty
+                ? 'Your identity verification was not approved. Reason: "$reason". Please review and submit a clear, valid ID to verify your account.'
+                : 'Your identity verification was not approved. Please ensure your ID photo is clear and valid, then resubmit your request.');
+
+        final Map<String, dynamic> atomicUpdates = {
+          'verificationRequests/$uid/status': approve ? 'approved' : 'rejected',
+          'verificationRequests/$uid/reviewedAt': ServerValue.timestamp,
+          if (!approve)
+            'verificationRequests/$uid/rejectionReason': reason.isNotEmpty ? reason : 'ID document could not be validated. Please resubmit with clear photos.',
+          if (approve)
+            'users/$uid/isVerified': true,
+          'system_messages/$uid/$messageId': {
+            'title': noticeTitle,
+            'body': noticeBody,
+            'timestamp': ServerValue.timestamp,
+            'read': false,
+          },
+        };
+
+        await ref.update(atomicUpdates);
+
+        if (context.mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(approve ? 'Account verified successfully.' : 'Verification request rejected.'),
+              backgroundColor: approve ? const Color(0xFF2E7D32) : Colors.red.shade700,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
       }
+    } finally {
+      reasonController.dispose();
     }
   }
 }
