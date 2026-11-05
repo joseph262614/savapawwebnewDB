@@ -285,7 +285,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                isMissing ? '🚨 Missing Pet Report: ${petName ?? petType}' : '$petType Report Details',
+                isMissing ? 'Missing Pet Report: ${petName ?? petType}' : '$petType Report Details',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
@@ -343,7 +343,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                _buildInfoRow('Report Type', isMissing ? 'Missing Pet Alert 🔍' : 'Stray Animal Report 🐾'),
+                _buildInfoRow('Report Type', isMissing ? 'Missing Pet Alert' : 'Stray Animal Report'),
                 if (isMissing && petName != null) _buildInfoRow('Pet Name', petName),
                 if (isMissing && contactPhone != null) _buildInfoRow('Owner Phone', contactPhone),
                 _buildInfoRow('Report ID', reportKey),
@@ -362,7 +362,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                         AdminMapDialog.showLocation(
                           context,
                           location: petCoordinates,
-                          title: isMissing ? '🚨 Last Seen: ${petName ?? petType}' : '🐾 Reported Stray: $petType',
+                          title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                           landmark: address,
                         );
                       },
@@ -427,7 +427,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                             AdminMapDialog.showLocation(
                               context,
                               location: petCoordinates,
-                              title: isMissing ? '🚨 Last Seen: ${petName ?? petType}' : '🐾 Reported Stray: $petType',
+                              title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                               landmark: address,
                             );
                           },
@@ -944,7 +944,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                                 border: Border.all(color: const Color(0xFFEF9A9A)),
                               ),
                               child: const Text(
-                                '🚨 MISSING',
+                                'MISSING',
                                 style: TextStyle(
                                   color: Color(0xFFC62828),
                                   fontSize: 9,
@@ -961,9 +961,15 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFC62828)),
                         ),
                       if (isMissing && contactPhone != null && contactPhone.isNotEmpty)
-                        Text(
-                          '📞 $contactPhone',
-                          style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                        Row(
+                          children: [
+                            Icon(Icons.phone, size: 10, color: Colors.grey[700]),
+                            const SizedBox(width: 2),
+                            Text(
+                              contactPhone,
+                              style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                            ),
+                          ],
                         ),
                       Text(
                         '#${key.length > 8 ? key.substring(0, 8) : key}',
@@ -1046,7 +1052,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                           AdminMapDialog.showLocation(
                             context,
                             location: coords,
-                            title: isMissing ? '🚨 Last Seen: ${petName ?? petType}' : '🐾 Reported Stray: $petType',
+                            title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                             landmark: address,
                           );
                         },
@@ -1121,7 +1127,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                                     border: Border.all(color: const Color(0xFFEF9A9A)),
                                   ),
                                   child: const Text(
-                                    '🚨 MISSING',
+                                    'MISSING',
                                     style: TextStyle(
                                       color: Color(0xFFC62828),
                                       fontSize: 10,
@@ -1193,7 +1199,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                         AdminMapDialog.showLocation(
                           context,
                           location: coords,
-                          title: isMissing ? '🚨 Last Seen: ${petName ?? petType}' : '🐾 Reported Stray: $petType',
+                          title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                           landmark: address,
                         );
                       },
