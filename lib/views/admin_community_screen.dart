@@ -679,6 +679,257 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
     }
   }
 
+  void _showCommentsDialog(BuildContext context, Map<String, dynamic> post) {
+    final postId = (post['id'] ?? '').toString();
+    if (postId.isEmpty) return;
+    final postDesc = (post['description'] ?? post['text'] ?? 'Post').toString();
+    final postAuthor = (post['author'] ?? 'User').toString();
+    final commentController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680, maxHeight: 650),
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryOrange.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.forum_outlined, color: AppTheme.primaryOrange, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Post Comments Moderation',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Post by $postAuthor: "${postDesc.length > 50 ? '${postDesc.substring(0, 50)}...' : postDesc}"',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                // Stream of comments
+                Expanded(
+                  child: StreamBuilder<DatabaseEvent>(
+                    stream: _db.child('comments').child(postId).onValue,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: AppTheme.primaryOrange));
+                      }
+
+                      final List<Map<String, dynamic>> comments = [];
+                      if (snapshot.hasData && snapshot.data!.snapshot.value is Map) {
+                        final map = snapshot.data!.snapshot.value as Map;
+                        map.forEach((k, v) {
+                          if (v is Map) {
+                            final c = Map<String, dynamic>.from(v);
+                            c['id'] = k.toString();
+                            comments.add(c);
+                          }
+                        });
+                      }
+
+                      comments.sort((a, b) {
+                        final tA = a['timestamp'] is num ? (a['timestamp'] as num).toInt() : 0;
+                        final tB = b['timestamp'] is num ? (b['timestamp'] as num).toInt() : 0;
+                        return tB.compareTo(tA);
+                      });
+
+                      if (comments.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey.shade300),
+                              const SizedBox(height: 8),
+                              Text(
+                                'No comments on this post yet.',
+                                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        itemCount: comments.length,
+                        separatorBuilder: (_, __) => const Divider(height: 16),
+                        itemBuilder: (context, index) {
+                          final c = comments[index];
+                          final cId = c['id'] ?? '';
+                          final userName = (c['username'] ?? c['authorName'] ?? 'Community Member').toString();
+                          final userAvatar = (c['userAvatar'] ?? c['avatar'] ?? '').toString();
+                          final text = (c['text'] ?? '').toString();
+                          final ts = c['timestamp'] is num ? (c['timestamp'] as num).toInt() : 0;
+                          final dateStr = ts > 0 ? _formatDate(ts) : 'Just now';
+
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: AppTheme.primaryOrange.withValues(alpha: 0.15),
+                                backgroundImage: userAvatar.isNotEmpty ? NetworkImage(userAvatar) : null,
+                                child: userAvatar.isEmpty
+                                    ? Text(
+                                        userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                                        style: const TextStyle(
+                                          color: AppTheme.primaryOrange,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          userName,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          dateStr,
+                                          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      text,
+                                      style: const TextStyle(fontSize: 13, height: 1.3),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                tooltip: 'Delete Comment',
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (dCtx) => AlertDialog(
+                                      title: const Text('Delete Comment?'),
+                                      content: const Text('Are you sure you want to permanently delete this comment?'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(dCtx, false), child: const Text('Cancel')),
+                                        ElevatedButton(
+                                          onPressed: () => Navigator.pop(dCtx, true),
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    await _db.child('comments').child(postId).child(cId).remove();
+                                    await _db.child('posts').child(postId).child('commentsCount').set(ServerValue.increment(-1));
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const Divider(height: 1),
+                // Admin reply input
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: commentController,
+                          decoration: InputDecoration(
+                            hintText: 'Add an official admin comment...',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            isDense: true,
+                          ),
+                          onSubmitted: (_) async {
+                            final text = commentController.text.trim();
+                            if (text.isEmpty) return;
+                            final currentUser = FirebaseAuth.instance.currentUser;
+                            final commentRef = _db.child('comments').child(postId).push();
+                            await commentRef.set({
+                              'userId': currentUser?.uid ?? 'admin',
+                              'username': 'Admin Support',
+                              'userAvatar': '',
+                              'text': text,
+                              'timestamp': ServerValue.timestamp,
+                            });
+                            await _db.child('posts').child(postId).child('commentsCount').set(ServerValue.increment(1));
+                            commentController.clear();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.send, color: AppTheme.primaryOrange),
+                        onPressed: () async {
+                          final text = commentController.text.trim();
+                          if (text.isEmpty) return;
+                          final currentUser = FirebaseAuth.instance.currentUser;
+                          final commentRef = _db.child('comments').child(postId).push();
+                          await commentRef.set({
+                            'userId': currentUser?.uid ?? 'admin',
+                            'username': 'Admin Support',
+                            'userAvatar': '',
+                            'text': text,
+                            'timestamp': ServerValue.timestamp,
+                          });
+                          await _db.child('posts').child(postId).child('commentsCount').set(ServerValue.increment(1));
+                          commentController.clear();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildImageWidget(String? url) {
     if (url == null || url.isEmpty) return const SizedBox.shrink();
 
@@ -1208,9 +1459,28 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
                           const SizedBox(width: 4),
                           Text('$likesCount likes', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                           const SizedBox(width: 16),
-                          const Icon(Icons.comment_outlined, color: Colors.grey, size: 16),
-                          const SizedBox(width: 4),
-                          Text('$commentsCount comments', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                          InkWell(
+                            onTap: () => _showCommentsDialog(context, post),
+                            borderRadius: BorderRadius.circular(6),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.mode_comment_outlined, color: AppTheme.primaryOrange, size: 16),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    '$commentsCount comments (View)',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryOrange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],

@@ -147,16 +147,13 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                     labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     tabs: [
                       Tab(
-                        icon: const Icon(Icons.pets, size: 18),
-                        text: '🐶 Dogs (${dogsList.length} pets • ${dogBreeds.length} breeds)',
+                        text: 'Dogs (${dogsList.length} pets • ${dogBreeds.length} breeds)',
                       ),
                       Tab(
-                        icon: const Icon(Icons.cruelty_free, size: 18),
-                        text: '🐱 Cats (${catsList.length} pets • ${catBreeds.length} breeds)',
+                        text: 'Cats (${catsList.length} pets • ${catBreeds.length} breeds)',
                       ),
                       Tab(
-                        icon: const Icon(Icons.category, size: 18),
-                        text: '🐾 All / Others (${otherList.length} pets)',
+                        text: 'All / Others (${otherList.length} pets)',
                       ),
                     ],
                   ),

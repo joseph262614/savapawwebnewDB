@@ -19,6 +19,9 @@ class AdminReportedPetsScreen extends StatefulWidget {
 }
 
 class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
+  bool _isMapView = false;
+  final MapController _mapController = MapController();
+  Map<String, dynamic>? _selectedReportForMap;
   String _selectedFilter = 'all'; // 'all', 'open', 'in progress', 'rescued', 'closed'
   String _selectedTypeFilter = 'all'; // 'all', 'stray', 'missing'
   final TextEditingController _searchController = TextEditingController();
@@ -626,6 +629,21 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => setState(() => _isMapView = !_isMapView),
+                      icon: Icon(_isMapView ? Icons.view_list_rounded : Icons.map_rounded, size: 16),
+                      label: Text(
+                        _isMapView ? 'Switch to List View' : 'Live Incident Map',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryOrange,
+                        side: const BorderSide(color: AppTheme.primaryOrange, width: 1.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     ElevatedButton.icon(
                       onPressed: () => AdminReportPetScreen.show(context),
                       icon: const Icon(Icons.add_circle_outline, size: 16),
@@ -651,7 +669,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                       runSpacing: 16,
                       children: [
                         _buildStatCard('Total Reports', '${allReports.length}', Icons.pets, AppTheme.primaryOrange, itemWidth),
-                        _buildStatCard('Missing Pets 🔍', '$missingCount', Icons.person_search_rounded, const Color(0xFFC62828), itemWidth),
+                        _buildStatCard('Missing Pets', '$missingCount', Icons.person_search_rounded, const Color(0xFFC62828), itemWidth),
                         _buildStatCard('Needs Help (Open)', '$openCount', Icons.emergency, Colors.redAccent, itemWidth),
                         _buildStatCard('Responding', '$inProgressCount', Icons.directions_run, Colors.blue, itemWidth),
                         _buildStatCard('Rescued', '$rescuedCount', Icons.check_circle, Colors.green, itemWidth),
@@ -706,9 +724,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                           children: [
                             _buildTypeFilterTab('all', 'All Reports (${allReports.length})'),
                             const SizedBox(width: 8),
-                            _buildTypeFilterTab('stray', '🐾 Stray Animals ($strayCount)', color: AppTheme.primaryOrange),
+                            _buildTypeFilterTab('stray', 'Stray Animals ($strayCount)', color: AppTheme.primaryOrange),
                             const SizedBox(width: 8),
-                            _buildTypeFilterTab('missing', '🚨 Missing Pets ($missingCount)', color: const Color(0xFFC62828)),
+                            _buildTypeFilterTab('missing', 'Missing Pets ($missingCount)', color: const Color(0xFFC62828)),
                           ],
                         ),
                       ),
@@ -736,7 +754,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                 const SizedBox(height: 20),
 
                 // Reports Content
-                if (filtered.isEmpty)
+                if (_isMapView)
+                  _buildLiveMap(filtered, isDesktop)
+                else if (filtered.isEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(48),
@@ -1202,6 +1222,198 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildLiveMap(List<Map<String, dynamic>> filteredReports, bool isDesktop) {
+    final List<Marker> markers = [];
+    LatLng centerPos = const LatLng(14.5320, 121.0781); // Metro East / Manila center
+
+    for (final report in filteredReports) {
+      final lat = (report['lat'] as num?)?.toDouble() ?? (report['latitude'] as num?)?.toDouble();
+      final lng = (report['lng'] as num?)?.toDouble() ?? (report['longitude'] as num?)?.toDouble();
+      if (lat == null || lng == null) continue;
+
+      final point = LatLng(lat, lng);
+      centerPos = point;
+      final status = (report['status'] ?? 'Open').toString();
+      final color = _getStatusColor(status);
+      final isMissing = (report['isMissing'] == true || (report['reportType'] ?? '').toString().toLowerCase() == 'missing');
+
+      markers.add(
+        Marker(
+          point: point,
+          width: 44,
+          height: 44,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedReportForMap = report;
+              });
+            },
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isMissing ? const Color(0xFFC62828) : color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2.5),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    isMissing ? Icons.person_search_rounded : Icons.pets,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 600,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: centerPos,
+              initialZoom: 13,
+              onTap: (_, __) {
+                if (_selectedReportForMap != null) {
+                  setState(() => _selectedReportForMap = null);
+                }
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.saveapaw.adminweb',
+              ),
+              MarkerLayer(markers: markers),
+            ],
+          ),
+          // Map header badge
+          Positioned(
+            top: 16,
+            left: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.emergency, color: Colors.redAccent, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${markers.length} Live Incident Pin${markers.length == 1 ? '' : 's'} on Map',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Selected report card popup
+          if (_selectedReportForMap != null)
+            Positioned(
+              left: 20,
+              right: isDesktop ? null : 20,
+              bottom: 20,
+              width: isDesktop ? 380 : null,
+              child: Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 10,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(_selectedReportForMap!['status'] ?? 'Open').withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              (_selectedReportForMap!['status'] ?? 'Open').toString().toUpperCase(),
+                              style: TextStyle(
+                                color: _getStatusColor(_selectedReportForMap!['status'] ?? 'Open'),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              (_selectedReportForMap!['petName'] ?? _selectedReportForMap!['petType'] ?? 'Emergency Report').toString(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 18),
+                            onPressed: () => setState(() => _selectedReportForMap = null),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        (_selectedReportForMap!['landmark'] ?? _selectedReportForMap!['address'] ?? _selectedReportForMap!['location'] ?? 'Location coordinates provided').toString(),
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                final rep = _selectedReportForMap!;
+                                setState(() => _selectedReportForMap = null);
+                                _showReportDetailsDialog(context, rep);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryOrange,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: const Text('View & Manage Details', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
