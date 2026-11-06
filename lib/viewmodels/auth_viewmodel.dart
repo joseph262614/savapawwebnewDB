@@ -31,6 +31,16 @@ class AuthViewModel extends ChangeNotifier {
     _isInitialized = true;
     _isAuthChecking = true;
 
+    // Safety fallback timer: On web, ensure splash view never hangs indefinitely
+    // if auth state stream or RTDB connection delays.
+    Timer(const Duration(milliseconds: 2500), () {
+      if (_isAuthChecking) {
+        debugPrint("AuthViewModel: initialization fallback timer fired, releasing splash screen.");
+        _isAuthChecking = false;
+        notifyListeners();
+      }
+    });
+
     _authSubscription?.cancel();
     _authSubscription = _auth.authStateChanges().listen((User? user) async {
       _user = user;
@@ -51,6 +61,10 @@ class AuthViewModel extends ChangeNotifier {
         _userSubscription?.cancel();
         _userSubscription = null;
       }
+      _isAuthChecking = false;
+      notifyListeners();
+    }, onError: (error) {
+      debugPrint("AuthViewModel authStateChanges error: $error");
       _isAuthChecking = false;
       notifyListeners();
     });
@@ -92,7 +106,16 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<bool> checkIfAdmin(String uid) async {
     try {
-      final snapshot = await _db.ref().child('users').child(uid).child('role').get();
+      final snapshot = await _db
+          .ref()
+          .child('users')
+          .child(uid)
+          .child('role')
+          .get()
+          .timeout(const Duration(seconds: 4), onTimeout: () {
+            debugPrint("checkIfAdmin timed out after 4 seconds");
+            throw TimeoutException("checkIfAdmin query timed out");
+          });
       if (snapshot.exists && snapshot.value != null) {
         final role = snapshot.value.toString().trim().toLowerCase();
         return role == 'admin';

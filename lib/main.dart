@@ -42,8 +42,8 @@ class _FirebaseInitGateState extends State<FirebaseInitGate> {
         );
       }
 
-      // Brief delay to show splash
-      await Future.delayed(const Duration(seconds: 1));
+      // Brief smooth transition delay
+      await Future.delayed(const Duration(milliseconds: 300));
 
       if (mounted) setState(() => _initialized = true);
     } catch (e) {
@@ -180,20 +180,10 @@ class _RootAuthGate extends StatelessWidget {
     }
 
     if (auth.isLoggedIn && auth.isAdmin) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          Navigator.pushReplacementNamed(context, '/dashboard');
-        }
-      });
-      return const _SplashView();
+      return const AdminScreen();
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
-    return const _SplashView();
+    return const LoginScreen();
   }
 }
 
@@ -212,18 +202,10 @@ class _AdminAuthGuard extends StatelessWidget {
       return const AdminScreen();
     }
 
-    // Not logged in or not admin
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          '/login',
-          arguments: 'Please sign in to access the admin portal.',
-        );
-      }
-    });
-
-    return const _SplashView();
+    // Not logged in or not admin - directly render login screen with notice
+    return const LoginScreen(
+      initialErrorMessage: 'Please sign in to access the admin portal.',
+    );
   }
 }
 
@@ -239,14 +221,9 @@ class _LoginAuthGuard extends StatelessWidget {
       return const _SplashView();
     }
 
-    // If already logged in as admin, redirect to /dashboard
+    // If already logged in as admin, show admin screen
     if (auth.isLoggedIn && auth.isAdmin) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          Navigator.pushReplacementNamed(context, '/dashboard');
-        }
-      });
-      return const _SplashView();
+      return const AdminScreen();
     }
 
     return LoginScreen(initialErrorMessage: initialErrorMessage);
