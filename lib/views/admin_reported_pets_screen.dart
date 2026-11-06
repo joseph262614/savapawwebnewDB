@@ -212,6 +212,11 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
     final bool isMissing = (report['reportType'] == 'missing') || (report['isMissingPet'] == true);
     final String? petName = report['petName']?.toString();
     final String? contactPhone = report['contactPhone']?.toString();
+    final String? rescuedImageUrl = report['rescuedImageUrl']?.toString();
+    final String? rescueNotes = report['rescueNotes']?.toString();
+    final String? rescuerName = report['rescuerName']?.toString();
+    final String? rescuedDate = report['rescuedDate']?.toString();
+    final String? rescuedTime = report['rescuedTime']?.toString();
 
     showDialog(
       context: context,
@@ -292,12 +297,33 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
+                if (rescuedImageUrl != null && rescuedImageUrl.isNotEmpty) ...[
+                  const Text('Rescue Verification Proof (Live Photo):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.green)),
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () => _showImageDialog(context, rescuedImageUrl, 'Rescue Proof: $petType'),
+                    child: Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: _buildPetThumbnail(rescuedImageUrl, size: 220),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 _buildInfoRow('Report Type', isMissing ? 'Missing Pet Alert' : 'Stray Animal Report'),
                 if (isMissing && petName != null) _buildInfoRow('Pet Name', petName),
                 if (isMissing && contactPhone != null) _buildInfoRow('Owner Phone', contactPhone),
                 _buildInfoRow('Report ID', reportKey),
                 _buildInfoRow('Animal Type', petType),
                 _buildInfoRow('Status', status),
+                if (status == 'Rescued') ...[
+                  if (rescuerName != null) _buildInfoRow('Rescued By', rescuerName),
+                  if (rescuedDate != null || rescuedTime != null)
+                    _buildInfoRow('Rescued At', '${rescuedDate ?? ''} ${rescuedTime ?? ''}'.trim()),
+                  if (rescueNotes != null && rescueNotes.isNotEmpty)
+                    _buildInfoRow('Rescue Notes', rescueNotes),
+                ],
                 _buildInfoRow('Reported At', timeStr),
                 _buildInfoRow('Reporter UID', userId?.toString() ?? 'N/A'),
                 if (responderName != null) _buildInfoRow('Responder', responderName.toString()),
@@ -409,27 +435,45 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Close'),
           ),
-          PopupMenuButton<String>(
-            tooltip: 'Change Status',
-            onSelected: (val) {
-              Navigator.pop(ctx);
-              _updateStatus(reportKey, val);
-            },
-            itemBuilder: (c) => [
-              const PopupMenuItem(value: 'Open', child: Text('Mark as Open (Needs Help)')),
-              const PopupMenuItem(value: 'In Progress', child: Text('Mark as In Progress')),
-              const PopupMenuItem(value: 'Rescued', child: Text('Mark as Rescued')),
-              const PopupMenuItem(value: 'Closed', child: Text('Mark as Closed')),
-            ],
-            child: Container(
+          if (status == 'Rescued')
+            Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppTheme.primaryOrange,
+                color: Colors.green.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
               ),
-              child: const Text('Update Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.verified, size: 16, color: Colors.green),
+                  SizedBox(width: 6),
+                  Text('Rescue Verified (Locked)', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            )
+          else
+            PopupMenuButton<String>(
+              tooltip: 'Change Status',
+              onSelected: (val) {
+                Navigator.pop(ctx);
+                _updateStatus(reportKey, val);
+              },
+              itemBuilder: (c) => [
+                const PopupMenuItem(value: 'Open', child: Text('Mark as Open (Needs Help)')),
+                const PopupMenuItem(value: 'In Progress', child: Text('Mark as In Progress')),
+                const PopupMenuItem(value: 'Rescued', child: Text('Mark as Rescued')),
+                const PopupMenuItem(value: 'Closed', child: Text('Mark as Closed')),
+              ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryOrange,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('Update Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ),
-          ),
         ],
       ),
     );
