@@ -7,7 +7,7 @@ class PickedImageFile {
   PickedImageFile({required this.bytes, required this.name});
 }
 
-Future<PickedImageFile?> pickImageWeb() async {
+Future<PickedImageFile?> pickImageWeb({int maxDimension = 1080, double quality = 0.75}) async {
   return null;
 }
 

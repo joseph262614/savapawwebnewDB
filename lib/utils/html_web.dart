@@ -2,6 +2,7 @@
 import 'dart:html' as html;
 import 'dart:typed_data';
 import 'dart:async';
+import 'dart:convert';
 
 class PickedImageFile {
   final Uint8List bytes;
@@ -10,7 +11,7 @@ class PickedImageFile {
   PickedImageFile({required this.bytes, required this.name});
 }
 
-Future<PickedImageFile?> pickImageWeb() async {
+Future<PickedImageFile?> pickImageWeb({int maxDimension = 1080, double quality = 0.75}) async {
   final completer = Completer<PickedImageFile?>();
   try {
     final uploadInput = html.FileUploadInputElement()
@@ -29,26 +30,52 @@ Future<PickedImageFile?> pickImageWeb() async {
       final files = uploadInput.files;
       if (files != null && files.isNotEmpty) {
         final file = files[0];
-        final reader = html.FileReader();
+        final objectUrl = html.Url.createObjectUrlFromBlob(file);
+        final img = html.ImageElement();
 
-        reader.onLoadEnd.listen((e) {
-          cleanup();
-          if (reader.result != null) {
-            final Uint8List bytes = Uint8List.fromList(reader.result as List<int>);
+        img.onLoad.listen((_) {
+          try {
+            int width = img.naturalWidth > 0 ? img.naturalWidth : (img.width ?? 800);
+            int height = img.naturalHeight > 0 ? img.naturalHeight : (img.height ?? 800);
+
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = (height * (maxDimension / width)).round();
+                width = maxDimension;
+              } else {
+                width = (width * (maxDimension / height)).round();
+                height = maxDimension;
+              }
+            }
+
+            final canvas = html.CanvasElement(width: width, height: height);
+            final ctx = canvas.context2D;
+            ctx.drawImageScaled(img, 0, 0, width, height);
+
+            final dataUrl = canvas.toDataUrl('image/jpeg', quality);
+            html.Url.revokeObjectUrl(objectUrl);
+
+            final commaIdx = dataUrl.indexOf(',');
+            final base64Str = commaIdx != -1 ? dataUrl.substring(commaIdx + 1) : dataUrl;
+            final bytes = base64Decode(base64Str);
+
+            cleanup();
             if (!completer.isCompleted) {
               completer.complete(PickedImageFile(bytes: bytes, name: file.name));
             }
-          } else {
-            if (!completer.isCompleted) completer.complete(null);
+          } catch (e) {
+            // Fallback to raw reader if canvas processing encounters any error
+            html.Url.revokeObjectUrl(objectUrl);
+            _readRawFile(file, cleanup, completer);
           }
         });
 
-        reader.onError.listen((e) {
-          cleanup();
-          if (!completer.isCompleted) completer.complete(null);
+        img.onError.listen((_) {
+          html.Url.revokeObjectUrl(objectUrl);
+          _readRawFile(file, cleanup, completer);
         });
 
-        reader.readAsArrayBuffer(file);
+        img.src = objectUrl;
       } else {
         cleanup();
         if (!completer.isCompleted) completer.complete(null);
@@ -65,6 +92,26 @@ Future<PickedImageFile?> pickImageWeb() async {
     if (!completer.isCompleted) completer.complete(null);
   }
   return completer.future;
+}
+
+void _readRawFile(html.File file, void Function() cleanup, Completer<PickedImageFile?> completer) {
+  final reader = html.FileReader();
+  reader.onLoadEnd.listen((e) {
+    cleanup();
+    if (reader.result != null) {
+      final Uint8List bytes = Uint8List.fromList(reader.result as List<int>);
+      if (!completer.isCompleted) {
+        completer.complete(PickedImageFile(bytes: bytes, name: file.name));
+      }
+    } else {
+      if (!completer.isCompleted) completer.complete(null);
+    }
+  });
+  reader.onError.listen((e) {
+    cleanup();
+    if (!completer.isCompleted) completer.complete(null);
+  });
+  reader.readAsArrayBuffer(file);
 }
 
 void openUrl(String url) {

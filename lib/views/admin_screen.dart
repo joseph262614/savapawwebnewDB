@@ -246,12 +246,12 @@ class _AdminScreenState extends State<AdminScreen> {
             },
           ),
           StreamBuilder<DatabaseEvent>(
-            stream: FirebaseDatabase.instance.ref().child('verificationRequests').onValue,
+            stream: FirebaseDatabase.instance.ref().child('verificationRequests').orderByChild('status').equalTo('pending').onValue,
             builder: (context, snap) {
               int pendingCount = 0;
               if (snap.hasData && snap.data?.snapshot.value is Map) {
                 final map = snap.data!.snapshot.value as Map;
-                pendingCount = map.values.where((v) => v is Map && v['status'] == 'pending').length;
+                pendingCount = map.values.where((v) => v is Map && (v['status'] ?? '').toString().toLowerCase() == 'pending').length;
               }
               return _buildNavItem(
                 index: 2,
@@ -285,7 +285,7 @@ class _AdminScreenState extends State<AdminScreen> {
             isExpanded: isDesktop,
           ),
           StreamBuilder<DatabaseEvent>(
-            stream: FirebaseDatabase.instance.ref().child('reports').onValue,
+            stream: FirebaseDatabase.instance.ref().child('reports').orderByChild('status').equalTo('Open').onValue,
             builder: (context, snap) {
               int openCount = 0;
               if (snap.hasData && snap.data?.snapshot.value is Map) {

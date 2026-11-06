@@ -59,7 +59,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
 
   void _listenToPosts() {
     _postsSubscription?.cancel();
-    _postsSubscription = _db.child('posts').onValue.listen((event) {
+    _postsSubscription = _db.child('posts').limitToLast(50).onValue.listen((event) {
       if (!mounted) return;
       final snapshot = event.snapshot;
       List<Map<String, dynamic>> fetched = [];
@@ -232,7 +232,12 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
                             }
 
                             final picker = ImagePicker();
-                            final img = await picker.pickImage(source: ImageSource.gallery);
+                            final img = await picker.pickImage(
+                              source: ImageSource.gallery,
+                              maxWidth: 1080,
+                              maxHeight: 1080,
+                              imageQuality: 75,
+                            );
                             if (img != null) {
                               final bytes = await img.readAsBytes();
                               setDialogState(() {
@@ -462,7 +467,12 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
                             }
 
                             final picker = ImagePicker();
-                            final img = await picker.pickImage(source: ImageSource.gallery);
+                            final img = await picker.pickImage(
+                              source: ImageSource.gallery,
+                              maxWidth: 1080,
+                              maxHeight: 1080,
+                              imageQuality: 75,
+                            );
                             if (img != null) {
                               final bytes = await img.readAsBytes();
                               setDialogState(() {
