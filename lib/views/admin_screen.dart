@@ -97,8 +97,8 @@ class _AdminScreenState extends State<AdminScreen> {
     }
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 900;
-    final isTablet = screenWidth > 600 && screenWidth <= 900;
+    final isDesktop = screenWidth > 1100;
+    final isTablet = screenWidth > 600 && screenWidth <= 1100;
 
     // Content pages for sidebar navigation
     final pages = [

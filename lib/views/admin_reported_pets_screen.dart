@@ -884,7 +884,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: DataTable(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
           headingRowColor: WidgetStateProperty.all(const Color(0xFFF9F9FB)),
           horizontalMargin: 24,
           columnSpacing: 20,
@@ -1068,7 +1070,8 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
           }).toList(),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildMobileCards(List<Map<String, dynamic>> reports) {

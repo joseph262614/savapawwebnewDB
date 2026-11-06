@@ -1191,16 +1191,20 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          width: 580,
+          constraints: BoxConstraints(
+            maxWidth: 580,
+            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          ),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Row(
                 children: [
                   ClipRRect(
@@ -1296,7 +1300,8 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildHealthChip(String label, bool isTrue) {

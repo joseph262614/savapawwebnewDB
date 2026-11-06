@@ -578,8 +578,10 @@ class _AdminReportedPostsScreenState extends State<AdminReportedPostsScreen> {
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
-          width: 700,
-          constraints: const BoxConstraints(maxHeight: 650),
+          constraints: BoxConstraints(
+            maxWidth: 700,
+            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          ),
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
             child: Column(

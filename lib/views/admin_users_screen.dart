@@ -218,26 +218,37 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   // ─── Desktop Layout: Table + Detail Panel ──────────────────────────────
 
   Widget _buildDesktopLayout(UserManagementViewModel vm) {
-    return Row(
-      children: [
-        // User table
-        Expanded(
-          flex: vm.selectedUser != null ? 3 : 5,
-          child: _buildUserTable(vm),
-        ),
-        // Detail panel
-        if (vm.selectedUser != null) ...[
-          Container(width: 1, color: Colors.grey.shade200),
-          Expanded(
-            flex: 2,
-            child: _UserDetailPanel(
-              user: vm.selectedUser!,
-              onClose: () => vm.selectUser(null),
-              onResetPassword: () => _handlePasswordReset(vm.selectedUser!),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (vm.selectedUser != null && constraints.maxWidth < 750) {
+          return _UserDetailPanel(
+            user: vm.selectedUser!,
+            onClose: () => vm.selectUser(null),
+            onResetPassword: () => _handlePasswordReset(vm.selectedUser!),
+          );
+        }
+        return Row(
+          children: [
+            // User table
+            Expanded(
+              flex: vm.selectedUser != null ? 3 : 5,
+              child: _buildUserTable(vm),
             ),
-          ),
-        ],
-      ],
+            // Detail panel
+            if (vm.selectedUser != null) ...[
+              Container(width: 1, color: Colors.grey.shade200),
+              Expanded(
+                flex: 2,
+                child: _UserDetailPanel(
+                  user: vm.selectedUser!,
+                  onClose: () => vm.selectUser(null),
+                  onResetPassword: () => _handlePasswordReset(vm.selectedUser!),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -945,8 +956,14 @@ class _UserDetailPanelState extends State<_UserDetailPanel> {
                 children: [
                   Icon(Icons.event_busy, size: 18, color: count > 0 ? Colors.red : Colors.grey),
                   const SizedBox(width: 8),
-                  const Text('Adoption Cancellation Logs', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                  const Spacer(),
+                  const Expanded(
+                    child: Text(
+                      'Adoption Cancellation Logs',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
@@ -994,9 +1011,17 @@ class _UserDetailPanelState extends State<_UserDetailPanel> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('🐾 $pet', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            if (dateStr.isNotEmpty)
+                            Expanded(
+                              child: Text(
+                                '🐾 $pet',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (dateStr.isNotEmpty) ...[
+                              const SizedBox(width: 8),
                               Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                            ],
                           ],
                         ),
                         if (foster.isNotEmpty) ...[
@@ -2731,8 +2756,11 @@ class _AdoptionAuditModalState extends State<_AdoptionAuditModal> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
-        width: 700,
-        height: 650,
+        constraints: BoxConstraints(
+          maxWidth: 700,
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        height: MediaQuery.of(context).size.height * 0.85,
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
