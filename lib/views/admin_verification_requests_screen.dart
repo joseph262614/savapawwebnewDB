@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:convert';
 import '../theme/app_theme.dart';
+import '../widgets/app_optimized_image.dart';
 
 import 'admin_screen.dart';
 
@@ -467,7 +467,7 @@ class _VerificationDetailContent extends StatelessWidget {
   }
 
   Widget _buildImagePreview(String? base64String) {
-    if (base64String == null || !base64String.contains(',')) {
+    if (base64String == null || base64String.trim().isEmpty) {
       return Container(
         height: 180,
         width: double.infinity,
@@ -486,31 +486,21 @@ class _VerificationDetailContent extends StatelessWidget {
         ),
       );
     }
-    try {
-      final cleanBase64 = base64String.contains(',')
-          ? base64String.split(',').last
-          : base64String;
-      final bytes = base64Decode(cleanBase64.trim());
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.memory(
-            bytes,
-            width: double.infinity,
-            fit: BoxFit.contain,
-            cacheWidth: 800,
-            errorBuilder: (_, __, ___) => _buildFallbackCorruptImage(),
-          ),
-        ),
-      );
-    } catch (_) {
-      return _buildFallbackCorruptImage();
-    }
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: AppOptimizedImage(
+        imageUrl: base64String,
+        width: double.infinity,
+        fit: BoxFit.contain,
+        cacheWidth: 800,
+        borderRadius: BorderRadius.circular(12),
+        errorWidget: _buildFallbackCorruptImage(),
+      ),
+    );
   }
 
   Widget _buildFallbackCorruptImage() {

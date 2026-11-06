@@ -8,6 +8,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../utils/platform_picker.dart';
 import '../theme/app_theme.dart';
 import '../services/notification_service.dart';
+import '../widgets/app_optimized_image.dart';
 
 class AdminCommunityScreen extends StatefulWidget {
   final bool embeddedMode;
@@ -943,36 +944,6 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
   Widget _buildImageWidget(String? url) {
     if (url == null || url.isEmpty) return const SizedBox.shrink();
 
-    Widget imageContent;
-    if (url.startsWith('data:image')) {
-      try {
-        final commaIdx = url.indexOf(',');
-        final base64Str = commaIdx != -1 ? url.substring(commaIdx + 1) : url;
-        final cleanBase64 = base64Str.replaceAll('\n', '').replaceAll('\r', '').replaceAll(' ', '').trim();
-        final bytes = base64Decode(cleanBase64);
-        imageContent = Image.memory(
-          bytes,
-          fit: BoxFit.contain,
-          errorBuilder: (_, error, __) {
-            debugPrint("Image.memory error: $error");
-            return const Center(child: Icon(Icons.broken_image, color: Colors.grey));
-          },
-        );
-      } catch (e) {
-        debugPrint("base64Decode error in _buildImageWidget: $e");
-        return const SizedBox.shrink();
-      }
-    } else {
-      imageContent = Image.network(
-        url,
-        fit: BoxFit.contain,
-        errorBuilder: (_, error, __) {
-          debugPrint("Image.network error: $error");
-          return const Center(child: Icon(Icons.broken_image, color: Colors.grey));
-        },
-      );
-    }
-
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxHeight: 420),
@@ -982,7 +953,11 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
       ),
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
-      child: imageContent,
+      child: AppOptimizedImage(
+        imageUrl: url,
+        fit: BoxFit.contain,
+        borderRadius: BorderRadius.circular(10),
+      ),
     );
   }
 

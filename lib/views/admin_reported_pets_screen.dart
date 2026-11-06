@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -6,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import '../widgets/admin_map_dialog.dart';
+import '../widgets/app_optimized_image.dart';
 import 'admin_screen.dart';
 import 'admin_report_pet_screen.dart';
 
@@ -73,65 +73,14 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
   }
 
   Widget _buildPetThumbnail(String? imageUrl, {double size = 56}) {
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: const Icon(Icons.pets, color: Colors.grey, size: 24),
-      );
-    }
-
-    if (imageUrl.startsWith('data:image')) {
-      try {
-        final commaIdx = imageUrl.indexOf(',');
-        final base64Str = commaIdx != -1 ? imageUrl.substring(commaIdx + 1) : imageUrl;
-        final bytes = base64Decode(base64Str);
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.memory(
-            bytes,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            cacheWidth: 160,
-            cacheHeight: 160,
-            errorBuilder: (_, __, ___) => Container(
-              width: size,
-              height: size,
-              color: Colors.grey[200],
-              child: const Icon(Icons.broken_image, color: Colors.grey, size: 20),
-            ),
-          ),
-        );
-      } catch (_) {
-        return Container(
-          width: size,
-          height: size,
-          color: Colors.grey[200],
-          child: const Icon(Icons.broken_image, color: Colors.grey, size: 20),
-        );
-      }
-    }
-
-    return ClipRRect(
+    return AppOptimizedImage(
+      imageUrl: imageUrl,
+      width: size,
+      height: size,
+      fit: BoxFit.cover,
+      cacheWidth: size > 200 ? 800 : 200,
+      cacheHeight: size > 200 ? 800 : 200,
       borderRadius: BorderRadius.circular(10),
-      child: Image.network(
-        imageUrl,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          width: size,
-          height: size,
-          color: Colors.grey[200],
-          child: const Icon(Icons.pets, color: Colors.grey, size: 20),
-        ),
-      ),
     );
   }
 

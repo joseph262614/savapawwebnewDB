@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_optimized_image.dart';
 import '../viewmodels/user_management_viewmodel.dart';
 import 'admin_screen.dart';
 
@@ -2054,24 +2055,13 @@ Widget _buildAdoptionStatusBadge(String status) {
 
 
 Widget _buildPetThumb(String imageUrl, String petId) {
-  if (imageUrl.startsWith('data:image')) {
-    try {
-      return Image.memory(
-        base64Decode(imageUrl.split(',').last),
-        fit: BoxFit.cover,
-        cacheWidth: 120,
-        cacheHeight: 120,
-        errorBuilder: (_, __, ___) => _buildThumbPlaceholder(),
-      );
-    } catch (_) {
-      return _buildThumbPlaceholder();
-    }
-  }
   if (imageUrl.isNotEmpty) {
-    return Image.network(
-      imageUrl,
+    return AppOptimizedImage(
+      imageUrl: imageUrl,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _buildThumbPlaceholder(),
+      cacheWidth: 120,
+      cacheHeight: 120,
+      errorWidget: _buildThumbPlaceholder(),
     );
   }
   return FutureBuilder<DataSnapshot>(
@@ -2080,17 +2070,14 @@ Widget _buildPetThumb(String imageUrl, String petId) {
       if (snapshot.hasData && snapshot.data?.value is Map) {
         final data = snapshot.data!.value as Map;
         final img = data['imageUrl']?.toString() ?? '';
-        if (img.startsWith('data:image')) {
-          try {
-            return Image.memory(
-              base64Decode(img.split(',').last),
-              fit: BoxFit.cover,
-              cacheWidth: 120,
-              cacheHeight: 120,
-            );
-          } catch (_) {}
-        } else if (img.isNotEmpty) {
-          return Image.network(img, fit: BoxFit.cover);
+        if (img.isNotEmpty) {
+          return AppOptimizedImage(
+            imageUrl: img,
+            fit: BoxFit.cover,
+            cacheWidth: 120,
+            cacheHeight: 120,
+            errorWidget: _buildThumbPlaceholder(),
+          );
         }
       }
       return _buildThumbPlaceholder();

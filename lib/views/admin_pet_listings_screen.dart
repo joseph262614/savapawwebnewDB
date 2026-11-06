@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_optimized_image.dart';
 import 'admin_add_pet_screen.dart';
 
 class AdminPetListingsScreen extends StatefulWidget {
@@ -1009,30 +1009,11 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
   }
 
   Widget _buildThumbnail(String imageUrl) {
-    if (imageUrl.isEmpty) {
-      return Container(
-        color: Colors.grey.shade200,
-        child: const Icon(Icons.pets, color: Colors.grey, size: 28),
-      );
-    }
-    if (imageUrl.startsWith('data:image')) {
-      try {
-        final commaIdx = imageUrl.indexOf(',');
-        final base64Str = commaIdx != -1 ? imageUrl.substring(commaIdx + 1) : imageUrl;
-        return Image.memory(
-          base64Decode(base64Str),
-          fit: BoxFit.cover,
-          cacheWidth: 160,
-          cacheHeight: 160,
-        );
-      } catch (_) {
-        return Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image));
-      }
-    }
-    return Image.network(
-      imageUrl,
+    return AppOptimizedImage(
+      imageUrl: imageUrl,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image)),
+      cacheWidth: 160,
+      cacheHeight: 160,
     );
   }
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:convert';
 import '../theme/app_theme.dart';
+import '../widgets/app_optimized_image.dart';
 import 'admin_screen.dart';
 
 class AdminReportedPostsScreen extends StatefulWidget {
@@ -547,32 +547,13 @@ class _AdminReportedPostsScreenState extends State<AdminReportedPostsScreen> {
   }
 
   Widget _buildImageThumbnail(String imageUrl) {
-    if (imageUrl.isEmpty) {
-      return Container(
-        color: Colors.grey.shade200,
-        child: const Icon(Icons.article_outlined, size: 24, color: Colors.grey),
-      );
-    }
-    if (imageUrl.startsWith('data:image')) {
-      try {
-        final base64String = imageUrl.split(',').last;
-        return Image.memory(
-          base64Decode(base64String),
-          fit: BoxFit.cover,
-          cacheWidth: 160,
-          cacheHeight: 160,
-          errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image, size: 20)),
-        );
-      } catch (_) {
-        return Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image, size: 20));
-      }
-    } else {
-      return Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image, size: 20)),
-      );
-    }
+    return AppOptimizedImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      cacheWidth: 160,
+      cacheHeight: 160,
+      errorWidget: Container(color: Colors.grey.shade200, child: const Icon(Icons.article_outlined, size: 24, color: Colors.grey)),
+    );
   }
 
   void _showReviewDialog(Map<String, dynamic> report) {
