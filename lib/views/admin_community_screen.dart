@@ -105,8 +105,6 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
     final categories = [
       'General Notice',
       'Adoption Fair',
-      'Urgent Rescue',
-      'Lost & Found Alert',
       'Health & Vaccination',
       'System Update',
     ];
