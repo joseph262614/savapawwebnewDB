@@ -61,7 +61,7 @@
     },
 
     "reports": {
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer')",
+      ".read": "auth != null",
       ".indexOn": ["userId", "timestamp", "status"],
       "$reportId": {
         ".read": "auth != null && (data.child('userId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('isVerified').val() == true)",

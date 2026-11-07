@@ -1,8 +1,9 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/platform_picker.dart';
 
 /// A high-performance, memoized image renderer for web and desktop.
 ///
@@ -57,12 +58,26 @@ class AppOptimizedImage extends StatelessWidget {
     }
   }
 
+  static String _normalizeImageUrl(String raw) {
+    final trimmed = raw.trim();
+    // Convert Google Drive sharing links to direct image links
+    final driveMatch = RegExp(r'drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)').firstMatch(trimmed);
+    if (driveMatch != null) {
+      return 'https://lh3.googleusercontent.com/d/${driveMatch.group(1)}';
+    }
+    if (trimmed.contains('dropbox.com') && trimmed.endsWith('?dl=0')) {
+      return '${trimmed.substring(0, trimmed.length - 5)}?raw=1';
+    }
+    return trimmed;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final url = imageUrl;
-    if (url == null || url.trim().isEmpty) {
+    final rawUrl = imageUrl;
+    if (rawUrl == null || rawUrl.trim().isEmpty) {
       return _buildFallback(context);
     }
+    final url = _normalizeImageUrl(rawUrl);
 
     Widget content;
     final isBase64 = url.startsWith('data:image') ||
@@ -104,7 +119,18 @@ class AppOptimizedImage extends StatelessWidget {
           if (loadingProgress == null) return child;
           return placeholder ?? _buildPlaceholder(context);
         },
-        errorBuilder: (_, __, ___) => _buildFallback(context),
+        errorBuilder: (_, __, ___) {
+          if (kIsWeb) {
+            return buildWebCorsFreeImage(
+              url: url,
+              fit: fit,
+              width: width,
+              height: height,
+              fallback: _buildFallback(context),
+            );
+          }
+          return _buildFallback(context);
+        },
       );
     }
 

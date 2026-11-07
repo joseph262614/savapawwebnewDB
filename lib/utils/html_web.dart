@@ -3,6 +3,7 @@ import 'dart:html' as html;
 import 'dart:typed_data';
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 
 class PickedImageFile {
   final Uint8List bytes;
@@ -118,4 +119,101 @@ void openUrl(String url) {
   try {
     html.window.open(url, '_blank');
   } catch (_) {}
+}
+
+Widget buildWebCorsFreeImage({
+  required String url,
+  required BoxFit fit,
+  double? width,
+  double? height,
+  required Widget fallback,
+}) {
+  return _WebCorsFreeImage(
+    key: ValueKey<String>(url),
+    url: url,
+    fit: fit,
+    width: width,
+    height: height,
+    fallback: fallback,
+  );
+}
+
+class _WebCorsFreeImage extends StatefulWidget {
+  final String url;
+  final BoxFit fit;
+  final double? width;
+  final double? height;
+  final Widget fallback;
+
+  const _WebCorsFreeImage({
+    super.key,
+    required this.url,
+    required this.fit,
+    this.width,
+    this.height,
+    required this.fallback,
+  });
+
+  @override
+  State<_WebCorsFreeImage> createState() => _WebCorsFreeImageState();
+}
+
+class _WebCorsFreeImageState extends State<_WebCorsFreeImage> {
+  bool _hasError = false;
+
+  String _boxFitToCss(BoxFit fit) {
+    switch (fit) {
+      case BoxFit.contain:
+        return 'contain';
+      case BoxFit.fill:
+        return 'fill';
+      case BoxFit.fitWidth:
+      case BoxFit.fitHeight:
+      case BoxFit.scaleDown:
+        return 'scale-down';
+      case BoxFit.none:
+        return 'none';
+      case BoxFit.cover:
+        return 'cover';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasError) {
+      return widget.fallback;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final resolvedWidth = widget.width ??
+            (constraints.hasBoundedWidth ? constraints.maxWidth : 400.0);
+        final resolvedHeight = widget.height ??
+            (constraints.hasBoundedHeight ? constraints.maxHeight : 260.0);
+
+        return SizedBox(
+          width: resolvedWidth,
+          height: resolvedHeight,
+          child: HtmlElementView.fromTagName(
+            tagName: 'img',
+            onElementCreated: (Object element) {
+              final img = element as html.ImageElement;
+              img.referrerPolicy = 'no-referrer';
+              img.src = widget.url;
+              img.style.width = '100%';
+              img.style.height = '100%';
+              img.style.objectFit = _boxFitToCss(widget.fit);
+              img.style.display = 'block';
+              img.style.border = 'none';
+              img.onError.listen((_) {
+                if (mounted) {
+                  setState(() => _hasError = true);
+                }
+              });
+            },
+          ),
+        );
+      },
+    );
+  }
 }
