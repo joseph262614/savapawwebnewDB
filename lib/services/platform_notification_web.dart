@@ -3,6 +3,9 @@ import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 
 class PlatformNotification {
+  static const String announcementsChannelId = 'announcements_channel';
+  static const String rescueAlertsChannelId = 'rescue_alerts_channel';
+
   static Future<void> requestPermission() async {
     try {
       if (html.Notification.permission == 'default') {
@@ -22,11 +25,13 @@ class PlatformNotification {
     }
   }
 
-  static void showNotification({
+  static Future<void> showNotification({
     required String title,
     required String body,
+    String? channelId,
+    String? payload,
     String? iconUrl,
-  }) {
+  }) async {
     try {
       if (html.Notification.permission == 'granted') {
         html.Notification(
