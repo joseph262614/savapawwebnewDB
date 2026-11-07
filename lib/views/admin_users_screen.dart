@@ -795,8 +795,11 @@ class _UserDetailPanelState extends State<_UserDetailPanel> {
   }
 
   Future<void> _updateRole(String currentRole) async {
-    final roles = ['adopter', 'foster', 'volunteer', 'admin'];
+    final roles = ['adopter', 'foster', 'volunteer', 'partner', 'admin'];
     String selectedRole = currentRole.toLowerCase().trim();
+    if (selectedRole == 'rescue partner' || selectedRole == 'rescue_partner') {
+      selectedRole = 'partner';
+    }
     if (!roles.contains(selectedRole)) selectedRole = 'adopter';
 
     final newRole = await showDialog<String>(

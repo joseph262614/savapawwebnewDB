@@ -30,7 +30,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     'Adopter',
     'Foster',
     'Volunteer',
-    'Rescue Partner',
+    'Partner',
   ];
 
   @override

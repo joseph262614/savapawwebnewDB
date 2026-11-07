@@ -55,13 +55,18 @@ class AppUser {
   }
 
   factory AppUser.fromMap(String uid, Map<dynamic, dynamic> data) {
+    String parsedRole = (data['role']?.toString() ?? 'user').trim();
+    if (parsedRole.toLowerCase() == 'rescue partner' || parsedRole.toLowerCase() == 'rescue_partner') {
+      parsedRole = 'partner';
+    }
+
     return AppUser(
       uid: uid,
       firstName: data['firstName']?.toString() ?? '',
       lastName: data['lastName']?.toString() ?? '',
       email: data['email']?.toString() ?? '',
       username: data['username']?.toString() ?? '',
-      role: data['role']?.toString() ?? 'user',
+      role: parsedRole,
       isVerified: data['isVerified'] == true ||
           data['isVerified']?.toString().toLowerCase() == 'true',
       isBanned: data['isBanned'] == true ||
