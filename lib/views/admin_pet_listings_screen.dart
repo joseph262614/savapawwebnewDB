@@ -922,83 +922,86 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                   ],
                 ),
                 const Divider(height: 18),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => _showPetDetailsDialog(pet),
-                      icon: const Icon(Icons.visibility_outlined, size: 16),
-                      label: const Text('Details'),
-                    ),
-                    if (!pet.isAdopted) ...[
-                      const SizedBox(width: 8),
-                      Builder(
-                        builder: (context) {
-                          final isPending = _pendingPetUpdates.contains(pet.id);
-                          return TextButton.icon(
-                            onPressed: isPending
-                                ? null
-                                : isPoster
-                                    ? () => _toggleAdoptionStatus(pet)
-                                    : () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Cannot mark "${pet.name}". Only the user who posted this pet can change its adoption status.'),
-                                            backgroundColor: Colors.orange.shade800,
-                                          ),
-                                        );
-                                      },
-                            icon: isPending
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
-                                  )
-                                : Icon(
-                                    isPoster ? Icons.check : Icons.lock_outline,
-                                    size: 16,
-                                  ),
-                            label: Text(
-                              isPending ? 'Updating...' : 'Mark Adopted',
-                            ),
-                            style: TextButton.styleFrom(
-                              foregroundColor: isPoster
-                                  ? Colors.green
-                                  : Colors.grey.shade400,
-                            ),
-                          );
-                        },
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => _showPetDetailsDialog(pet),
+                        icon: const Icon(Icons.visibility_outlined, size: 16),
+                        label: const Text('Details'),
                       ),
-                      const SizedBox(width: 8),
-                      if (isPoster)
-                        TextButton.icon(
-                          onPressed: () => _showEditPetDialog(pet),
-                          icon: const Icon(Icons.edit_outlined, size: 16),
-                          label: const Text('Edit'),
-                        )
-                      else
-                        Tooltip(
-                          message: 'Only the user who posted this pet can edit its info',
-                          child: TextButton.icon(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Cannot edit "${pet.name}". Only the user who posted this pet can edit its info.'),
-                                  backgroundColor: Colors.orange.shade800,
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.lock_outline, size: 15, color: Colors.grey),
-                            label: Text('Edit', style: TextStyle(color: Colors.grey.shade400)),
-                          ),
+                      if (!pet.isAdopted) ...[
+                        Builder(
+                          builder: (context) {
+                            final isPending = _pendingPetUpdates.contains(pet.id);
+                            return TextButton.icon(
+                              onPressed: isPending
+                                  ? null
+                                  : isPoster
+                                      ? () => _toggleAdoptionStatus(pet)
+                                      : () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Cannot mark "${pet.name}". Only the user who posted this pet can change its adoption status.'),
+                                              backgroundColor: Colors.orange.shade800,
+                                            ),
+                                          );
+                                        },
+                              icon: isPending
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+                                    )
+                                  : Icon(
+                                      isPoster ? Icons.check : Icons.lock_outline,
+                                      size: 16,
+                                    ),
+                              label: Text(
+                                isPending ? 'Updating...' : 'Mark Adopted',
+                              ),
+                              style: TextButton.styleFrom(
+                                foregroundColor: isPoster
+                                    ? Colors.green
+                                    : Colors.grey.shade400,
+                              ),
+                            );
+                          },
                         ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                        onPressed: () => _confirmDeletePet(pet),
-                      ),
+                        if (isPoster)
+                          TextButton.icon(
+                            onPressed: () => _showEditPetDialog(pet),
+                            icon: const Icon(Icons.edit_outlined, size: 16),
+                            label: const Text('Edit'),
+                          )
+                        else
+                          Tooltip(
+                            message: 'Only the user who posted this pet can edit its info',
+                            child: TextButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Cannot edit "${pet.name}". Only the user who posted this pet can edit its info.'),
+                                    backgroundColor: Colors.orange.shade800,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.lock_outline, size: 15, color: Colors.grey),
+                              label: Text('Edit', style: TextStyle(color: Colors.grey.shade400)),
+                            ),
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                          onPressed: () => _confirmDeletePet(pet),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -1378,7 +1381,14 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Edit "${pet.name}" Profile', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: Text(
+                            'Edit "${pet.name}" Profile',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
                       ],
                     ),

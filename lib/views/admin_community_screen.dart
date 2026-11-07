@@ -127,7 +127,13 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
                     child: const Icon(Icons.campaign, color: AppTheme.primaryOrange, size: 24),
                   ),
                   const SizedBox(width: 12),
-                  const Text('Broadcast Announcement', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Expanded(
+                    child: Text(
+                      'Broadcast Announcement',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
               content: SizedBox(
@@ -410,7 +416,13 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
                     child: const Icon(Icons.post_add, color: Colors.blue, size: 24),
                   ),
                   const SizedBox(width: 12),
-                  const Text('Create Official Community Post', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Expanded(
+                    child: Text(
+                      'Create Official Community Post',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
               content: SizedBox(
@@ -825,9 +837,13 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
                                   children: [
                                     Row(
                                       children: [
-                                        Text(
-                                          userName,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                        Flexible(
+                                          child: Text(
+                                            userName,
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
@@ -1269,7 +1285,15 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Broadcast by $author', style: TextStyle(fontSize: 11.5, color: Colors.grey.shade500)),
+                    Expanded(
+                      child: Text(
+                        'Broadcast by $author',
+                        style: TextStyle(fontSize: 11.5, color: Colors.grey.shade500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     Text(dateStr, style: TextStyle(fontSize: 11.5, color: Colors.grey.shade500)),
                   ],
                 ),

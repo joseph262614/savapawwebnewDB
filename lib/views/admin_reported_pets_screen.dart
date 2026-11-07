@@ -594,60 +594,73 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top Header
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.emergency, color: Colors.redAccent, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Reported Pets in Need (Rescue Hub)',
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Strictly for Volunteers and Administrators. Real-time emergency reports, location data, and rescue dispatch.',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                          child: const Icon(Icons.emergency, color: Colors.redAccent, size: 28),
+                        ),
+                        const SizedBox(width: 16),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Reported Pets in Need (Rescue Hub)',
+                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Real-time emergency reports, location data, and rescue dispatch.',
+                                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    OutlinedButton.icon(
-                      onPressed: () => setState(() => _isMapView = !_isMapView),
-                      icon: Icon(_isMapView ? Icons.view_list_rounded : Icons.map_rounded, size: 16),
-                      label: Text(
-                        _isMapView ? 'Switch to List View' : 'Live Incident Map',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.primaryOrange,
-                        side: const BorderSide(color: AppTheme.primaryOrange, width: 1.5),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: () => AdminReportPetScreen.show(context),
-                      icon: const Icon(Icons.add_circle_outline, size: 16),
-                      label: const Text('Report a Pet / Missing Pet', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryOrange,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => setState(() => _isMapView = !_isMapView),
+                          icon: Icon(_isMapView ? Icons.view_list_rounded : Icons.map_rounded, size: 16),
+                          label: Text(
+                            _isMapView ? 'Switch to List View' : 'Live Incident Map',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryOrange,
+                            side: const BorderSide(color: AppTheme.primaryOrange, width: 1.5),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () => AdminReportPetScreen.show(context),
+                          icon: const Icon(Icons.add_circle_outline, size: 16),
+                          label: const Text('Report a Pet / Missing Pet', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryOrange,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -1112,7 +1125,14 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(petType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Flexible(
+                                child: Text(
+                                  petType,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                               if (isMissing) ...[
                                 const SizedBox(width: 8),
                                 Container(
@@ -1145,11 +1165,11 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                           ),
                           if (isMissing && petName != null && petName.isNotEmpty) ...[
                             const SizedBox(height: 2),
-                            Text('Name: $petName', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFFC62828))),
+                            Text('Name: $petName', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFFC62828)), maxLines: 1, overflow: TextOverflow.ellipsis),
                           ],
                           if (isMissing && contactPhone != null && contactPhone.isNotEmpty) ...[
                             const SizedBox(height: 2),
-                            Text('Owner Phone: $contactPhone', style: TextStyle(fontSize: 11, color: Colors.grey[700])),
+                            Text('Owner Phone: $contactPhone', style: TextStyle(fontSize: 11, color: Colors.grey[700]), maxLines: 1, overflow: TextOverflow.ellipsis),
                           ],
                           const SizedBox(height: 4),
                           Text(timeStr, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
@@ -1171,53 +1191,57 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                   ],
                 ),
                 const Divider(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.primaryTeal,
-                        side: const BorderSide(color: AppTheme.primaryTeal),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.primaryTeal,
+                          side: const BorderSide(color: AppTheme.primaryTeal),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        ),
+                        icon: const Icon(Icons.map_outlined, size: 16),
+                        label: const Text('Open Map', style: TextStyle(fontSize: 12)),
+                        onPressed: () {
+                          double? pLat;
+                          double? pLng;
+                          final rLat = report['lat'];
+                          final rLng = report['lng'];
+                          if (rLat is num) pLat = rLat.toDouble();
+                          if (rLng is num) pLng = rLng.toDouble();
+                          if (pLat == null && rLat is String) pLat = double.tryParse(rLat);
+                          if (pLng == null && rLng is String) pLng = double.tryParse(rLng);
+                          final coords = (pLat != null && pLng != null) ? LatLng(pLat, pLng) : const LatLng(14.5320, 121.0781);
+                          AdminMapDialog.showLocation(
+                            context,
+                            location: coords,
+                            title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
+                            landmark: address,
+                          );
+                        },
                       ),
-                      icon: const Icon(Icons.map_outlined, size: 16),
-                      label: const Text('Open Map', style: TextStyle(fontSize: 12)),
-                      onPressed: () {
-                        double? pLat;
-                        double? pLng;
-                        final rLat = report['lat'];
-                        final rLng = report['lng'];
-                        if (rLat is num) pLat = rLat.toDouble();
-                        if (rLng is num) pLng = rLng.toDouble();
-                        if (pLat == null && rLat is String) pLat = double.tryParse(rLat);
-                        if (pLng == null && rLng is String) pLng = double.tryParse(rLng);
-                        final coords = (pLat != null && pLng != null) ? LatLng(pLat, pLng) : const LatLng(14.5320, 121.0781);
-                        AdminMapDialog.showLocation(
-                          context,
-                          location: coords,
-                          title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
-                          landmark: address,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton.icon(
-                      icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
-                      label: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
-                      onPressed: () => _confirmDeleteReport(context, key, petType),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryOrange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      TextButton.icon(
+                        icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                        label: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                        onPressed: () => _confirmDeleteReport(context, key, petType),
                       ),
-                      icon: const Icon(Icons.visibility, size: 16),
-                      label: const Text('Details', style: TextStyle(fontSize: 12)),
-                      onPressed: () => _showReportDetailsDialog(context, report),
-                    ),
-                  ],
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryOrange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        icon: const Icon(Icons.visibility, size: 16),
+                        label: const Text('Details', style: TextStyle(fontSize: 12)),
+                        onPressed: () => _showReportDetailsDialog(context, report),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

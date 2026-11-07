@@ -1064,7 +1064,7 @@ class _UserDetailPanelState extends State<_UserDetailPanel> {
                 size: 24,
               ),
               const SizedBox(width: 10),
-              const Text('Account Suspension & Restrictions'),
+              const Expanded(child: Text('Account Suspension & Restrictions')),
             ],
           ),
           content: SizedBox(
@@ -3127,24 +3127,41 @@ class _AdoptionAuditModalState extends State<_AdoptionAuditModal> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.grey.shade200),
             ),
-            child: Row(
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 6,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                if (data['adopterPhone'] != null && data['adopterPhone'].toString().trim().isNotEmpty) ...[
-                  const Icon(Icons.phone_outlined, size: 14, color: AppTheme.primaryOrange),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Phone: ${data['adopterPhone']}',
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: Colors.black87),
+                if (data['adopterPhone'] != null && data['adopterPhone'].toString().trim().isNotEmpty)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.phone_outlined, size: 14, color: AppTheme.primaryOrange),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          'Phone: ${data['adopterPhone']}',
+                          style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: Colors.black87),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                ],
-                const Icon(Icons.email_outlined, size: 14, color: AppTheme.primaryOrange),
-                const SizedBox(width: 6),
-                Text(
-                  'Email: ${data['adopterEmail']?.toString() ?? widget.user.email}',
-                  style: const TextStyle(fontSize: 11, color: Colors.black87),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.email_outlined, size: 14, color: AppTheme.primaryOrange),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Email: ${data['adopterEmail']?.toString() ?? widget.user.email}',
+                        style: const TextStyle(fontSize: 11, color: Colors.black87),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-                const Spacer(),
                 Text(
                   'Date: ${_formatTimestamp(timestamp)}',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
@@ -3265,69 +3282,83 @@ class _AdoptionAuditModalState extends State<_AdoptionAuditModal> {
             ),
           ],
           const SizedBox(height: 10),
-          Row(
-            children: [
-              if (data['adopterAgreedTerms'] == true) ...[
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (data['adopterAgreedTerms'] == true)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.green.shade300),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.verified, size: 14, color: Colors.green),
+                        SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Terms & Responsibility Signed',
+                            style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (status == 'approved')
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.amber.shade400),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.hourglass_top, size: 14, color: Colors.amber.shade900),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Foster Approved • Awaiting Terms Signature',
+                            style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.12),
+                    color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.green.shade300),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.verified, size: 14, color: Colors.green),
-                      SizedBox(width: 4),
-                      Text(
-                        'Terms & Responsibility Signed',
-                        style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ] else if (status == 'approved') ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.amber.shade400),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.hourglass_top, size: 14, color: Colors.amber.shade900),
+                      Icon(Icons.shield_outlined, size: 13, color: Colors.blueGrey.shade700),
                       const SizedBox(width: 4),
-                      Text(
-                        'Foster Approved • Awaiting Terms Signature',
-                        style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.bold),
+                      Flexible(
+                        child: Text(
+                          'Admin Audit Only (Platform Intermediary)',
+                          style: TextStyle(fontSize: 11, color: Colors.blueGrey.shade700, fontStyle: FontStyle.italic),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.shield_outlined, size: 13, color: Colors.blueGrey.shade700),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Admin Audit Only (Platform Intermediary)',
-                      style: TextStyle(fontSize: 11, color: Colors.blueGrey.shade700, fontStyle: FontStyle.italic),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),

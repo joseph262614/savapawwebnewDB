@@ -337,9 +337,12 @@ class _AdminReportPetScreenState extends State<AdminReportPetScreen> {
                     size: 24,
                   ),
                   const SizedBox(width: 10),
-                  Text(
-                    isMissing ? 'Report a Missing Pet' : 'Report a Stray Pet in Need',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  Expanded(
+                    child: Text(
+                      isMissing ? 'Report a Missing Pet' : 'Report a Stray Pet in Need',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -393,12 +396,16 @@ class _AdminReportPetScreenState extends State<AdminReportPetScreen> {
                                       color: !isMissing ? Colors.white : Colors.grey.shade700,
                                     ),
                                     const SizedBox(width: 8),
-                                    Text(
-                                      'Report Stray Pet',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13.5,
-                                        color: !isMissing ? Colors.white : Colors.grey.shade800,
+                                    Flexible(
+                                      child: Text(
+                                        'Report Stray Pet',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13.5,
+                                          color: !isMissing ? Colors.white : Colors.grey.shade800,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -429,12 +436,16 @@ class _AdminReportPetScreenState extends State<AdminReportPetScreen> {
                                       color: isMissing ? Colors.white : Colors.grey.shade700,
                                     ),
                                     const SizedBox(width: 8),
-                                    Text(
-                                      'Report Missing Pet',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13.5,
-                                        color: isMissing ? Colors.white : Colors.grey.shade800,
+                                    Flexible(
+                                      child: Text(
+                                        'Report Missing Pet',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13.5,
+                                          color: isMissing ? Colors.white : Colors.grey.shade800,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],

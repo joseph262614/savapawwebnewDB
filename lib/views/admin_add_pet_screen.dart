@@ -180,9 +180,12 @@ class _AdminAddPetScreenState extends State<AdminAddPetScreen> {
                 children: [
                   Icon(Icons.pets, color: AppTheme.primaryOrange, size: 22),
                   SizedBox(width: 10),
-                  Text(
-                    'Post a Pet for Adoption (Admin)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  Expanded(
+                    child: Text(
+                      'Post a Pet for Adoption (Admin)',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),

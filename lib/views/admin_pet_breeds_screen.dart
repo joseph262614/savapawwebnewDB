@@ -639,9 +639,13 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                       children: [
                         Row(
                           children: [
-                            Text(
-                              breed.breedName,
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            Flexible(
+                              child: Text(
+                                breed.breedName,
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                             if (breed.breedName.toLowerCase().contains('mixed') ||
                                 breed.breedName.toLowerCase().contains('unknown'))
@@ -661,18 +665,21 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Row(
+                        Wrap(
+                          spacing: 4,
+                          runSpacing: 2,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               '${breed.totalCount} pet${breed.totalCount > 1 ? 's' : ''} registered',
                               style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                             ),
-                            const Text(' • ', style: TextStyle(color: Colors.grey)),
+                            const Text('•', style: TextStyle(color: Colors.grey)),
                             Text(
                               '${breed.availableCount} available',
                               style: const TextStyle(fontSize: 12, color: Color(0xFFE65100), fontWeight: FontWeight.w600),
                             ),
-                            const Text(' • ', style: TextStyle(color: Colors.grey)),
+                            const Text('•', style: TextStyle(color: Colors.grey)),
                             Text(
                               '${breed.adoptedCount} adopted',
                               style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), fontWeight: FontWeight.w600),
@@ -704,13 +711,16 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         'Registered Pets in "${breed.breedName}" (${breed.pets.length})',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
                       ),
-                      const Spacer(),
                       Text(
                         'Click any pet to view custody/foster info',
                         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
@@ -1154,9 +1164,12 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                                   children: [
                                     const Icon(Icons.event, size: 14, color: Color(0xFF3F51B5)),
                                     const SizedBox(width: 6),
-                                    Text(
-                                      'Scheduled Retrieval: ${foundInquiry!['scheduledPickupDate']}',
-                                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
+                                    Flexible(
+                                      child: Text(
+                                        'Scheduled Retrieval: ${foundInquiry!['scheduledPickupDate']}',
+                                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1168,7 +1181,13 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                                 children: [
                                   const Icon(Icons.phone, size: 14, color: Colors.grey),
                                   const SizedBox(width: 6),
-                                  Text('Phone: ${foundInquiry!['adopterPhone']}', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                                  Expanded(
+                                    child: Text(
+                                      'Phone: ${foundInquiry!['adopterPhone']}',
+                                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -1186,9 +1205,12 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                                   children: [
                                     Icon(Icons.verified, size: 14, color: Colors.green),
                                     SizedBox(width: 4),
-                                    Text(
-                                      'Terms & Pre-Screening Agreed by Adopter',
-                                      style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
+                                    Flexible(
+                                      child: Text(
+                                        'Terms & Pre-Screening Agreed by Adopter',
+                                        style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1226,9 +1248,12 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                                   children: [
                                     const Icon(Icons.verified, color: Colors.green, size: 16),
                                     const SizedBox(width: 8),
-                                    Text(
-                                      'Handover Completed • Pet Adopted',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green.shade900),
+                                    Flexible(
+                                      child: Text(
+                                        'Handover Completed • Pet Adopted',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green.shade900),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),

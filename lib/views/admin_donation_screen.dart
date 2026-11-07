@@ -333,10 +333,13 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
                               children: [
                                 const Icon(Icons.check_circle, color: Colors.white, size: 14),
                                 const SizedBox(width: 4),
-                                Text(
-                                  _qrImageFileName!,
-                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
+                                Flexible(
+                                  child: Text(
+                                    _qrImageFileName!,
+                                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ],
                             ),
