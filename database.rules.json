@@ -53,20 +53,21 @@
       ".read": true,
       ".indexOn": ["category", "fosterId", "isAdopted", "breed"],
       "$petId": {
-        // Only Verified Fosters or Admins can post pets, and author or admin can update/delete
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || (!data.exists() && root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' && root.child('users').child(auth.uid).child('isVerified').val() == true) || (data.exists() && data.child('fosterId').val() == auth.uid))",
-        // Breed is optional so fosters can proceed without filling it in
+        // Verified Fosters, Partners, or Admins can post pets, and author or admin can update/delete
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || (!data.exists() && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner') && root.child('users').child(auth.uid).child('isVerified').val() == true) || (data.exists() && data.child('fosterId').val() == auth.uid))",
+        // Breed is optional so fosters/partners can proceed without filling it in
         ".validate": "newData.hasChildren(['name', 'age', 'imageUrl', 'fosterId', 'category'])"
       }
     },
 
     "reports": {
+      // Authenticated users can listen to reports to receive 10 km nearby rescue alerts
       ".read": "auth != null",
       ".indexOn": ["userId", "timestamp", "status"],
       "$reportId": {
-        ".read": "auth != null && (data.child('userId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('isVerified').val() == true)",
-        // Verified users, volunteers, admins or author can write/update report
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('isVerified').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || (data.exists() && data.child('userId').val() == auth.uid))"
+        ".read": "auth != null && (data.child('userId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner' || root.child('users').child(auth.uid).child('isVerified').val() == true)",
+        // Verified users, volunteers, partners, admins or author can write/update report
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('isVerified').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner' || (data.exists() && data.child('userId').val() == auth.uid))"
       }
     },
 
@@ -98,7 +99,7 @@
       // Indexed fields for pass-verification, status filtering, and user queries
       ".indexOn": ["adopterUid", "fosterId", "petId", "adoptionCode", "status"],
       "$inquiryId": {
-        // Either adopter, foster, or admin can create or update an inquiry
+        // Either adopter, foster, partner, or admin can create or update an inquiry
         ".write": "auth != null && (!data.exists() ? (newData.child('adopterUid').val() == auth.uid || newData.child('fosterId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true) : (data.child('adopterUid').val() == auth.uid || data.child('fosterId').val() == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true))",
         ".validate": "newData.hasChildren(['petId', 'fosterId', 'adopterUid'])"
       }
@@ -168,7 +169,8 @@
 
     "locations": {
       "$uid": {
-        ".read": "auth != null && ($uid == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('isVerified').val() == true)",
+        // Fosters, partners, volunteers, verified users, or admins can read rescue and handover locations
+        ".read": "auth != null && ($uid == auth.uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('isVerified').val() == true)",
         ".write": "auth != null && auth.uid == $uid",
         ".validate": "newData.hasChildren(['lat', 'lng', 'timestamp'])"
       }
