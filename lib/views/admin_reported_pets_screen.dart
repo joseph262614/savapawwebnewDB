@@ -72,6 +72,38 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
     }
   }
 
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return Icons.emergency;
+      case 'in progress':
+      case 'responding':
+        return Icons.directions_run;
+      case 'rescued':
+        return Icons.check_circle;
+      case 'closed':
+        return Icons.archive;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return 'Needs Help';
+      case 'in progress':
+      case 'responding':
+        return 'In Progress';
+      case 'rescued':
+        return 'Rescued';
+      case 'closed':
+        return 'Closed';
+      default:
+        return status;
+    }
+  }
+
   Widget _buildPetThumbnail(String? imageUrl, {double size = 56}) {
     return AppOptimizedImage(
       imageUrl: imageUrl,
@@ -147,6 +179,214 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
           SnackBar(content: Text('Failed to update: $e'), backgroundColor: Colors.redAccent),
         );
       }
+    }
+  }
+
+  void _showStatusActionModal(BuildContext context, Map<String, dynamic> report) {
+    final reportId = (report['reportKey'] ?? report['id'] ?? '').toString();
+    final currentStatus = (report['status'] ?? 'Open').toString().trim();
+    final petType = (report['petType'] ?? 'Animal').toString();
+
+    if (currentStatus.toLowerCase() == 'rescued') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This rescue is already verified and completed. Status cannot be changed.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
+
+    Widget buildModalContent(BuildContext ctx) {
+      final statusColor = _getStatusColor(currentStatus);
+      final statusIcon = _getStatusIcon(currentStatus);
+      final statusLabel = _getStatusLabel(currentStatus);
+      final displayId = reportId.length > 8 ? reportId.substring(0, 8) : reportId;
+
+      return Container(
+        constraints: const BoxConstraints(maxWidth: 440),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    statusIcon,
+                    color: statusColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Report #$displayId',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Current Status: $statusLabel',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Close',
+                  icon: const Icon(Icons.close, size: 20, color: Colors.grey),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Update Rescue Status',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            if (currentStatus.toLowerCase() != 'in progress' && currentStatus.toLowerCase() != 'responding')
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.directions_run, color: Colors.blue),
+                ),
+                title: const Text('Respond to Rescue', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Mark as In Progress and assign yourself as responder'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _updateStatus(reportId, 'In Progress');
+                },
+              ),
+            if (currentStatus.toLowerCase() != 'rescued')
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.check_circle_outline, color: Colors.green),
+                ),
+                title: const Text('Mark as Rescued', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Animal has been rescued or brought to safety'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _updateStatus(reportId, 'Rescued');
+                },
+              ),
+            if (currentStatus.toLowerCase() != 'open')
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.refresh, color: Colors.redAccent),
+                ),
+                title: const Text('Re-open Report', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Reset status to Needs Help (Open)'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _updateStatus(reportId, 'Open');
+                },
+              ),
+            if (currentStatus.toLowerCase() != 'closed')
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.archive_outlined, color: Colors.black54),
+                ),
+                title: const Text('Close Report', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Archive this report if resolved or not found'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _updateStatus(reportId, 'Closed');
+                },
+              ),
+            const Divider(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.delete_forever, color: Colors.red),
+              ),
+              title: const Text('Delete Report', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              subtitle: const Text('Admin action: permanently remove this report'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.red),
+              onTap: () {
+                Navigator.pop(ctx);
+                _confirmDeleteReport(context, reportId, petType);
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isWide = MediaQuery.of(context).size.width >= 600;
+    if (isWide) {
+      showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(child: buildModalContent(ctx)),
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (ctx) => SingleChildScrollView(child: buildModalContent(ctx)),
+      );
     }
   }
 
@@ -453,26 +693,18 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
               ),
             )
           else
-            PopupMenuButton<String>(
-              tooltip: 'Change Status',
-              onSelected: (val) {
-                Navigator.pop(ctx);
-                _updateStatus(reportKey, val);
-              },
-              itemBuilder: (c) => [
-                const PopupMenuItem(value: 'Open', child: Text('Mark as Open (Needs Help)')),
-                const PopupMenuItem(value: 'In Progress', child: Text('Mark as In Progress')),
-                const PopupMenuItem(value: 'Rescued', child: Text('Mark as Rescued')),
-                const PopupMenuItem(value: 'Closed', child: Text('Mark as Closed')),
-              ],
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryOrange,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text('Update Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryOrange,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showStatusActionModal(context, report);
+              },
+              child: const Text('Update Status', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
         ],
       ),
@@ -1009,30 +1241,27 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                   ),
                 ),
                 DataCell(
-                  PopupMenuButton<String>(
-                    tooltip: 'Change Status',
-                    onSelected: (newVal) => _updateStatus(key, newVal),
-                    itemBuilder: (c) => [
-                      const PopupMenuItem(value: 'Open', child: Text('Open (Needs Help)')),
-                      const PopupMenuItem(value: 'In Progress', child: Text('In Progress (Responding)')),
-                      const PopupMenuItem(value: 'Rescued', child: Text('Rescued')),
-                      const PopupMenuItem(value: 'Closed', child: Text('Closed')),
-                    ],
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
-                          const SizedBox(width: 6),
-                          Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
-                          const SizedBox(width: 4),
-                          Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
-                        ],
+                  InkWell(
+                    onTap: () => _showStatusActionModal(context, report),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Tooltip(
+                      message: 'Click to update rescue status',
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
+                            const SizedBox(width: 6),
+                            Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                            const SizedBox(width: 4),
+                            Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1153,13 +1382,24 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                                 ),
                               ],
                               const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(10),
+                              InkWell(
+                                onTap: () => _showStatusActionModal(context, report),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                                      const SizedBox(width: 3),
+                                      Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                    ],
+                                  ),
                                 ),
-                                child: Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
                               ),
                             ],
                           ),
