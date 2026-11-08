@@ -830,7 +830,7 @@ class _DashboardContent extends StatelessWidget {
                     child: _AdminActionCard(
                       icon: Icons.verified_user_outlined,
                       title: 'Verification Requests',
-                      subtitle: 'Review user government IDs & face scan verifications',
+                      subtitle: 'Review user valid IDs & face scan verifications',
                       color: AppTheme.primaryTeal,
                       onTap: onNavigateToVerification,
                     ),
