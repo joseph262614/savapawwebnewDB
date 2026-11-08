@@ -151,6 +151,19 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
 
   Future<void> _updateStatus(String reportKey, String newStatus) async {
     try {
+      final snap = await FirebaseDatabase.instance.ref().child('reports').child(reportKey).child('status').get();
+      if (snap.exists && snap.value.toString().trim().toLowerCase() == 'rescued') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This rescue is already verified and completed. Status cannot be modified.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        return;
+      }
+
       final user = FirebaseAuth.instance.currentUser;
       final updates = <String, dynamic>{
         'status': newStatus,
@@ -557,7 +570,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                 _buildInfoRow('Report ID', reportKey),
                 _buildInfoRow('Animal Type', petType),
                 _buildInfoRow('Status', status),
-                if (status == 'Rescued') ...[
+                if (status.toString().trim().toLowerCase() == 'rescued') ...[
                   if (rescuerName != null) _buildInfoRow('Rescued By', rescuerName),
                   if (rescuedDate != null || rescuedTime != null)
                     _buildInfoRow('Rescued At', '${rescuedDate ?? ''} ${rescuedTime ?? ''}'.trim()),
@@ -675,7 +688,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Close'),
           ),
-          if (status == 'Rescued')
+          if (status.toString().trim().toLowerCase() == 'rescued')
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -1150,6 +1163,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             final desc = report['description'] ?? 'No description';
             final address = report['address'] ?? 'No address';
             final status = (report['status'] ?? 'Open').toString();
+            final isRescued = status.toString().trim().toLowerCase() == 'rescued';
             final imageUrl = report['imageUrl']?.toString();
             final timeStr = _formatDate(report['timestamp']);
             final statusColor = _getStatusColor(status);
@@ -1241,30 +1255,53 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                   ),
                 ),
                 DataCell(
-                  InkWell(
-                    onTap: () => _showStatusActionModal(context, report),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Tooltip(
-                      message: 'Click to update rescue status',
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.12),
+                  isRescued
+                      ? Tooltip(
+                          message: 'Rescue Verified & Locked. Status cannot be modified.',
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.verified, size: 14, color: Colors.green),
+                                SizedBox(width: 5),
+                                Text(
+                                  'Rescued (Locked)',
+                                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : InkWell(
+                          onTap: () => _showStatusActionModal(context, report),
                           borderRadius: BorderRadius.circular(12),
+                          child: Tooltip(
+                            message: 'Click to update rescue status',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
+                                  const SizedBox(width: 6),
+                                  Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
-                            const SizedBox(width: 6),
-                            Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
-                            const SizedBox(width: 4),
-                            Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
                 DataCell(
                   Text(timeStr, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
@@ -1324,6 +1361,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
         final desc = report['description'] ?? 'No description';
         final address = report['address'] ?? 'No address';
         final status = (report['status'] ?? 'Open').toString();
+        final isRescued = status.toString().trim().toLowerCase() == 'rescued';
         final imageUrl = report['imageUrl']?.toString();
         final timeStr = _formatDate(report['timestamp']);
         final statusColor = _getStatusColor(status);
@@ -1382,25 +1420,46 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                                 ),
                               ],
                               const Spacer(),
-                              InkWell(
-                                onTap: () => _showStatusActionModal(context, report),
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
+                              if (isRescued)
+                                Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: statusColor.withValues(alpha: 0.12),
+                                    color: Colors.green.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
-                                      const SizedBox(width: 3),
-                                      Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                      Icon(Icons.verified, size: 12, color: Colors.green),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Rescued (Locked)',
+                                        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                                      ),
                                     ],
                                   ),
+                                )
+                              else
+                                InkWell(
+                                  onTap: () => _showStatusActionModal(context, report),
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                                        const SizedBox(width: 3),
+                                        Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                           if (isMissing && petName != null && petName.isNotEmpty) ...[
