@@ -226,6 +226,23 @@ class _AdminScreenState extends State<AdminScreen> {
             label: 'Dashboard',
             isExpanded: isDesktop,
           ),
+          if (isDesktop) ...[
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 6),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'MANAGEMENT MODULES',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white38,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ),
+          ],
           StreamBuilder<DatabaseEvent>(
             stream: FirebaseDatabase.instance.ref().child('adoptionCenter').onValue,
             builder: (context, snap) {
@@ -751,9 +768,30 @@ class _DashboardContent extends StatelessWidget {
           const SizedBox(height: 28),
 
           // Admin cards grid
-          const Text(
-            'Quick Actions',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              const Text(
+                'MANAGEMENT MODULES',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryOrange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  '9 Modules',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           LayoutBuilder(
