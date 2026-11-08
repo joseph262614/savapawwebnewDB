@@ -45,8 +45,8 @@
             await caches.delete(keys[j]);
           }
         }
-        if (hadController && !sessionStorage.getItem('sw_purged_v7')) {
-          sessionStorage.setItem('sw_purged_v7', '1');
+        if (hadController && !sessionStorage.getItem('sw_purged_v8')) {
+          sessionStorage.setItem('sw_purged_v8', '1');
           window.location.reload();
           return;
         }
@@ -54,7 +54,7 @@
         console.warn('Cache purge warning:', e);
       }
       var s = document.createElement('script');
-      s.src = 'flutter_bootstrap.js?v=20261109_4';
+      s.src = 'flutter_bootstrap.js?v=20261109_5';
       s.async = true;
       document.body.appendChild(s);
     })();

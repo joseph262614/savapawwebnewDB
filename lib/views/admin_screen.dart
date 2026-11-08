@@ -168,7 +168,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   Widget _buildSidebar(AuthViewModel authViewModel, bool isDesktop) {
     return Container(
-      width: isDesktop ? 260 : 72,
+      width: isDesktop ? 280 : 72,
       decoration: const BoxDecoration(
         color: AppTheme.sidebarBg,
         boxShadow: [
@@ -470,20 +470,24 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
               if (isExpanded) ...[
                 const SizedBox(width: 12),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isActive
-                        ? Colors.white
-                        : enabled
-                            ? Colors.white70
-                            : Colors.white30,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                    fontSize: 14,
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isActive
+                          ? Colors.white
+                          : enabled
+                              ? Colors.white70
+                              : Colors.white30,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                      fontSize: 13.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (badgeCount != null && badgeCount > 0) ...[
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
@@ -496,7 +500,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     ),
                   ),
                 ] else if (!enabled) ...[
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
