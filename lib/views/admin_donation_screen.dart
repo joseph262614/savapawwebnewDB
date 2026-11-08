@@ -433,49 +433,6 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.account_balance, size: 16, color: Colors.grey.shade700),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'Bank / E-Wallet Provider *',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _presetBanks.map((bank) {
-                    final isSelected = _selectedBank == bank;
-                    return ChoiceChip(
-                      label: Text(bank == 'Other' ? 'Others...' : bank),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedBank = bank;
-                          if (bank != 'Other') {
-                            _bankNameController.text = bank;
-                          } else if (_presetBanks.contains(_bankNameController.text)) {
-                            _bankNameController.clear();
-                          }
-                        });
-                      },
-                      selectedColor: const Color(0xFFFF926B).withValues(alpha: 0.25),
-                      side: BorderSide(
-                        color: isSelected ? const Color(0xFFE65100) : Colors.grey.shade300,
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                      labelStyle: TextStyle(
-                        color: isSelected ? const Color(0xFFE65100) : Colors.black87,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        fontSize: 12.5,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 10),
                 FormField<String>(
                   initialValue: _selectedBank,
                   validator: (_) {
@@ -487,7 +444,7 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
                   builder: (FormFieldState<String> state) {
                     return InputDecorator(
                       decoration: InputDecoration(
-                        labelText: 'Choose Provider *',
+                        labelText: 'Bank / E-Wallet Provider *',
                         prefixIcon: const Icon(Icons.account_balance),
                         border: const OutlineInputBorder(),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
