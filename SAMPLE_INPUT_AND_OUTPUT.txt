@@ -1,0 +1,352 @@
+================================================================================
+APPENDIX: SAMPLE INPUT AND OUTPUT
+================================================================================
+Project Title: SAVEAPAW: A Community-Driven Animal Welfare, Adoption, and Rescue 
+               Platform with AI-Assisted Support (Mobile & Web Admin Application)
+Proponents:    Capstone Research & Development Team
+Document Type: Capstone Manuscript Appendix / Operational User Guide
+================================================================================
+
+This appendix presents sample inputs and outputs of the SAVEAPAW Community-Driven 
+Animal Welfare, Adoption, and Rescue Platform. Each sample illustrates the exact 
+data and operational actions performed by users (Input) alongside the corresponding 
+system behavior, visual interface, and database state returned by the platform (Output). 
+The workflows demonstrate role-based access control, distinguishing between Guest Users 
+(unauthenticated visitors) and Verified Members/Rescuers across core features.
+
+================================================================================
+1. GUEST USER MODULE (UNAUTHENTICATED ACCESS)
+================================================================================
+
+Sample 1.1: Guest Navigation (Home, Community, and Donation Access)
+--------------------------------------------------------------------------------
+User Role: Guest (Unauthenticated Visitor)
+Purpose:   Allowing public citizens to explore shelter activities, read educational 
+           community posts, and donate without account friction.
+
+Input:
+The guest launches the mobile application and taps "Continue as Guest" (or skips 
+the login prompt). The guest browses the bottom navigation bar and selects "Home", 
+"Community", or "Donate".
+
+Output:
+The system loads public platform features:
+• Home Screen: Displays the dynamic hero banner ("Find Your Best Friend"), 
+  Animal Rescue Team Metroeast (ART) highlight reels, recent outreach mission photos, 
+  and partner NGO spotlights.
+• Community Screen: Displays official shelter announcements, pet care articles, 
+  and public community stories.
+• Donation Screen: Displays verified GCash QR codes, bank transfer details, and 
+  in-kind donation guidelines for food, medicine, and bedding.
+--------------------------------------------------------------------------------
+
+Sample 1.2: Role-Based Interface Visibility & Guest Gating
+--------------------------------------------------------------------------------
+User Role: Guest (Unauthenticated Visitor)
+Purpose:   Enforcing platform security and clean UX by completely hiding protected 
+           member modules (Adoption Center, Report Stray, Reported Pets in Need, 
+           and Messages) from unauthenticated visitors.
+
+Input:
+The guest user navigates through the bottom navigation bar and opens the application 
+navigation drawer, then taps the "Log In / Sign Up" option in the drawer.
+
+Output:
+The system dynamically restricts the user interface based on authentication state:
+• Hidden Modules: The "Adoption Center", "Report Stray", "Reported Pets in Need", 
+  and "Messages" options are completely hidden from the guest's bottom navigation bar, 
+  home screen, and navigation drawer.
+• Visible Modules: Only public navigation items ("Home", "Community", "Donate") and 
+  a highlighted "Log In / Sign Up" drawer tile are accessible.
+• System Reaction: Tapping "Log In / Sign Up" opens the Login & Registration portal, 
+  allowing the guest to authenticate and unlock full access to the Adoption Center, 
+  pet rescue reporting, and community foster features.
+--------------------------------------------------------------------------------
+
+
+================================================================================
+2. MEMBER REGISTRATION & IDENTITY VERIFICATION
+================================================================================
+
+Sample 2.1: User Account Registration & Role Selection
+--------------------------------------------------------------------------------
+User Role: New Member
+Purpose:   Creating a secure, role-differentiated user profile.
+
+Input:
+The new user navigates to the Registration screen and enters:
+• Full Name: "Maria Santos"
+• Username: "mariasantos"
+• Email Address: "maria.santos@gmail.com"
+• Contact Number: "09171234567"
+• Password: "••••••••••••" (minimum 6 characters)
+• Role Selection: Selects "Adopter" (or "Foster", "Volunteer", "Partner")
+• Legal Age & Policy Confirmation: Checks the checkbox agreeing to the Terms and 
+  Conditions (confirming minimum age of 18 years old) and taps "Create Account".
+
+Output:
+The system:
+1. Validates input formatting and verifies username/email uniqueness.
+2. Creates a user record in Firebase Authentication.
+3. Initializes a database profile at `/users/{uid}` with `isVerified: false`, 
+   `isAdmin: false`, `isBanned: false`, and assigned role.
+4. Automatically signs the user in and redirects to the identity verification banner.
+--------------------------------------------------------------------------------
+
+Sample 2.2: Identity Accreditation via Document Scanner
+--------------------------------------------------------------------------------
+User Role: Registered Member (Pending Verification)
+Purpose:   Preventing fraudulent adoptions and spam reporting through government ID 
+           and facial biometric verification.
+
+Input:
+The user opens the Profile screen, taps "Get Verified", selects "Government-Issued ID", 
+uses the integrated Google ML Kit Document Scanner to capture their ID (with automatic 
+edge detection and perspective rectification), captures a live facial selfie, and taps 
+"Submit Verification".
+
+Output:
+The system:
+1. Encrypts and uploads the ID document and selfie to Firebase Cloud Storage at 
+   `/verification/{uid}/`.
+2. Creates an audit record under `/verificationRequests/{uid}` with timestamp and 
+   status "pending".
+3. Updates the user's profile badge to "Verification Pending", alerting the user that 
+   an administrator will review the submission within 24 to 48 hours.
+================================================================================
+
+
+================================================================================
+3. VERIFIED MEMBER & RESCUER MODULES
+================================================================================
+
+Sample 3.1: Adoption Center Catalog Browsing & Inquiry Submission
+--------------------------------------------------------------------------------
+User Role: Verified Member / Adopter
+Purpose:   Facilitating ethical, fee-free pet adoptions between adopters and fosters.
+
+Input:
+The verified adopter opens the "Adoption Center" tab, filters by category ("Dogs"), 
+swipes through pet cards, inspects medical badges (Vaccinated, Neutered, Microchipped), 
+taps on pet "Bella", reviews the personality description, clicks "Adopt", enters an 
+introductory message: "Hi, I have a fenced yard in Marikina and would love to adopt Bella!", 
+and clicks "Submit Inquiry".
+
+Output:
+The system:
+1. Validates that the pet is currently available (`isAdopted: false`).
+2. Creates an adoption inquiry record in `/adoption_inquiries/{inquiryId}` linked to 
+   both the adopter and foster parent.
+3. Automatically opens a dedicated real-time chat channel between the adopter and foster.
+4. Displays a confirmation snackbar: "Inquiry sent! You can now chat directly with Bella's foster."
+--------------------------------------------------------------------------------
+
+Sample 3.2: Custody Agreement, Pickup Scheduling (5-Day Window), and Adoption Pass
+--------------------------------------------------------------------------------
+User Role: Verified Adopter & Foster Parent
+Purpose:   Enforcing formal custody commitments and providing a verifiable handover 
+           voucher with a mandatory 5-day retrieval scheduling window.
+
+Input:
+Following mutual chat screening, the foster approves the inquiry. The adopter taps 
+"Proceed to Adoption Agreement", reviews the legal terms (prohibiting resale, neglect, 
+and requiring humane treatment), checks "I Agree to Adoption Responsibilities", 
+selects a retrieval date within the strict 5-day window starting from the agreement 
+date (e.g., choosing within November 8 – November 12), and clicks "Agree & Confirm Retrieval Date".
+
+Output:
+The system:
+1. Enforces the strict 5-day scheduling limit: all dates outside this 5-day window 
+   are disabled in the calendar, preventing selection of subsequent months or years 
+   to ensure unclaimed pets can be offered to other approved applicants.
+2. Generates a unique 5-character alphanumeric Adoption Pass code (e.g., "K9B7X").
+3. Generates a scannable QR/barcode containing the inquiry ID, adopter UID, and verification hash.
+4. Displays the on-screen Adoption Pass modal with instructions:
+   "Adoption and screening venue: Marikina. Present this 5-character code (K9B7X) during 
+   on-site screening for verification. Remember, Save-A-Paws adoptions are 100% free!"
+--------------------------------------------------------------------------------
+
+Sample 3.3: Reporting a Stray or Distressed Animal with GPS Geotagging
+--------------------------------------------------------------------------------
+User Role: Verified Member / Volunteer / Partner
+Purpose:   Rapid emergency dispatch of rescue teams to injured or abandoned animals.
+
+Input:
+A member spots an injured puppy, taps "Report Stray", captures a live photograph using 
+the in-app camera, allows high-precision GPS positioning, selects animal type ("Dog"), 
+urgency level ("Emergency / Injured"), types description: "Injured left paw, near Marikina 
+Sports Center", and taps "Submit Report".
+
+Output:
+The system:
+1. Uploads the incident photo to Cloud Storage.
+2. Records the report under `/reports/{reportId}` with GPS coordinates (latitude, longitude), 
+   reverse-geocoded address, user ID, and status "pending".
+3. Plots an urgent incident pin on the interactive OpenStreetMap live incident map.
+4. Broadcasts a heads-up rescue alert notification to all verified volunteers and rescue 
+   partners located within a 10-kilometer radius.
+--------------------------------------------------------------------------------
+
+Sample 3.4: Rescue Dispatch, On-Site Rescue Confirmation & Resolution
+--------------------------------------------------------------------------------
+User Role: Volunteer / Rescue Partner
+Purpose:   Closing the rescue loop with verifiable photographic proof.
+
+Input:
+A field volunteer opens the "Reported Pets in Need" hub, selects the incident marker at 
+Marikina Sports Center, taps "Respond to Incident", arrives at the scene, taps 
+"Confirm Rescued", takes a live camera photo of the safely secured animal, and clicks 
+"Submit Rescue Proof".
+
+Output:
+The system:
+1. Updates the report status to "Rescued" and locks the record against further edits.
+2. Attaches the timestamped verification photo to the report history.
+3. Changes the map pin icon from an alert red badge to a resolved green badge.
+4. Publishes a rescue success event to the community Activity Feed, crediting the volunteer.
+--------------------------------------------------------------------------------
+
+Sample 3.5: Conversational AI Assistance (PawPal AI)
+--------------------------------------------------------------------------------
+User Role: Any Authenticated User (Adopter, Foster, Volunteer)
+Purpose:   Instant 24/7 guidance regarding adoption screening locations and pet health triage.
+
+Input:
+The user taps the floating PawPal AI puppy widget and selects the suggested question:
+"Where does adoption and screening happen?"
+
+Output:
+PawPal AI generates an immediate, warm response:
+"Adoption and screening take place in Marikina! We do not have a permanent designated 
+facility yet, but our team will announce the exact venue in the app as soon as one of 
+our dedicated volunteers, rescue teams, or local government partners provides the location 
+for the screening and handover. Adoptions on Save-A-Paws are completely 100% free with zero fees!"
+================================================================================
+
+
+================================================================================
+4. ADMINISTRATOR WORKSTATION MODULE (ADMIN PC & MANAGEMENT PORTAL)
+================================================================================
+
+Sample 4.1: Member Identity Verification Audit & Accreditation
+--------------------------------------------------------------------------------
+User Role: Shelter Administrator / System Operator
+Purpose:   Preventing fraudulent pet adoptions and unverified rescue claims by auditing 
+           submitted government IDs and facial biometric photos.
+
+Input:
+The administrator logs into the Save-A-Paws Admin PC workstation, clicks "Verification 
+Requests" on the navigation panel, views the pending request queue, clicks on applicant 
+"Maria Santos", inspects the high-resolution scanned Government ID (UMID/Driver's License) 
+alongside the live selfie, cross-checks date of birth (confirming legal age of 18+), and 
+clicks "Approve Verification".
+
+Output:
+The system:
+1. Updates the request record under `/verificationRequests/{uid}` to status "Approved" 
+   with approval timestamp and administrator UID.
+2. Updates `/users/{uid}` in the Realtime Database, setting `isVerified: true`.
+3. Dispatches an instant automated system message to Maria's mobile device:
+   "Congratulations! Your Save-A-Paws account has been officially verified."
+4. Unlocks full access on Maria's mobile profile to adopt pets, schedule retrieval 
+   dates, and participate in verified rescue workflows.
+--------------------------------------------------------------------------------
+
+Sample 4.2: Stray Emergency Rescue Operations & Photographic Proof Audit
+--------------------------------------------------------------------------------
+User Role: Shelter Administrator / Rescue Coordinator
+Purpose:   Auditing field rescue dispatches, verifying proof photos, and tracking 
+           stray incidents across the municipality.
+
+Input:
+The administrator opens the "Reported Pets in Need" management console on the PC, 
+filters reports by status "Rescued", selects Incident #REP-2026-0814, reviews the 
+initial distress report photo and GPS coordinates (Marikina Sports Center), inspects 
+the field volunteer's submitted live camera rescue proof photo and clinic notes, and 
+clicks "Verify & Archive Incident".
+
+Output:
+The system:
+1. Records official administrative verification on the rescue incident record.
+2. Updates the live incident status to "Resolved & Archived", locking the report 
+   against further edits.
+3. Automatically increments the shelter's public "Rescued Animals" performance metric.
+4. Syncs the green resolved status across all connected mobile clients and the 
+   community Activity Feed.
+--------------------------------------------------------------------------------
+
+Sample 4.3: Shelter Pet Inventory & 5-Character Adoption Pass Verification
+--------------------------------------------------------------------------------
+User Role: Shelter Administrator / Adoptions Manager
+Purpose:   Managing adoptable shelter pets and conducting secure on-site handovers.
+
+Input:
+Part A (Adding Pet Listing):
+Admin clicks "Pet Listings" -> "Add New Pet", uploads photos of rescued cat "Noki", 
+enters breed ("Siamese Mix"), age ("1 Year"), gender ("Female"), temperament, and 
+toggles medical badges: [x] Vaccinated, [x] Dewormed, [x] Neutered, [x] Microchipped. 
+Clicks "Publish Pet".
+
+Part B (On-Site Handover Verification in Marikina):
+On retrieval day, the adopter presents their 5-character Adoption Pass code "K9B7X". 
+The administrator enters "K9B7X" into the Adoption Pass verification lookup in the 
+Admin PC portal, verifies that the retrieval date falls within the mandatory 5-day 
+window, validates matching adopter identity, and clicks "Confirm Handover & Complete".
+
+Output:
+The system:
+1. Validates code "K9B7X", updates pet status to `isAdopted: true`, and links 
+   `adoptedBy: adopterUid`.
+2. Updates inquiry status to "Completed", logs the physical handover timestamp, and 
+   sets `petRetrieved: true`.
+3. Automatically generates an in-app signed Adoption Certificate for the adopter and 
+   removes the pet from public active search in the Adoption Center.
+--------------------------------------------------------------------------------
+
+Sample 4.4: User Account Management, Role Assignment & Disciplinary Moderation
+--------------------------------------------------------------------------------
+User Role: Shelter Administrator
+Purpose:   Promoting accredited rescue partners/fosters and moderating platform policy violations.
+
+Input:
+Part A (Role Promotion):
+Admin navigates to "User Management", searches username "art_metroeast", clicks 
+"Edit Role", updates account role from "Volunteer" to "Partner", and clicks "Save Changes".
+
+Part B (Account Moderation / Ban):
+Admin identifies an account repeatedly posting commercial pet sales (violating zero-fee 
+adoption rules), clicks "Moderate User", selects "Suspend / Ban Account", types reason: 
+"Violation of Section 1: Commercial rehoming fee solicitation prohibited", and clicks 
+"Confirm Ban".
+
+Output:
+The system:
+1. Updates the user's role to "Partner" in `/users/{uid}`, unlocking partner rescue 
+   badges and listing privileges.
+2. For the banned user, sets `isBanned: true` and writes `banReason` to the database.
+3. Immediately revokes the banned user's active session; the mobile app presents an 
+   account suspension dialog and restricts login.
+--------------------------------------------------------------------------------
+
+Sample 4.5: Publishing Official Shelter Announcements & Push Notifications
+--------------------------------------------------------------------------------
+User Role: Shelter Administrator / Public Information Officer
+Purpose:   Disseminating urgent rabies vaccination drives, pet care workshops, and 
+           adoption fair schedules to the public.
+
+Input:
+Admin opens "Community & Announcements" on the Admin PC, clicks "Create Announcement", 
+enters Title: "Free Community Anti-Rabies Vaccination Drive", Category: "Outreach & Clinic", 
+Description: "Save-A-Paws in partnership with City Veterinary Services will conduct free 
+anti-rabies vaccination and pet microchipping this Saturday, 9:00 AM at Marikina River Park.", 
+uploads an event banner, and clicks "Publish & Broadcast".
+
+Output:
+The system:
+1. Creates a new timestamped announcement node at `/announcements/{announcementId}`.
+2. Instantly publishes the announcement to the Community feed visible to both Guest Users 
+   and authenticated members.
+3. Triggers real-time in-app notification banners and increments the unread notification 
+   badge across all connected mobile application clients.
+================================================================================
+
