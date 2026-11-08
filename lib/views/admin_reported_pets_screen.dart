@@ -1153,8 +1153,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             child: DataTable(
           headingRowColor: WidgetStateProperty.all(const Color(0xFFF9F9FB)),
           headingRowHeight: 52,
-          dataRowMinHeight: 74,
-          dataRowMaxHeight: 86,
+          dataRowMinHeight: 88,
+          dataRowMaxHeight: 96,
+          dividerThickness: 1,
           horizontalMargin: 24,
           columnSpacing: 28,
           columns: const [
@@ -1184,10 +1185,17 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
               cells: [
                 DataCell(
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: InkWell(
-                      onTap: () => _showImageDialog(context, imageUrl, petType),
-                      child: _buildPetThumbnail(imageUrl, size: 50),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Center(
+                      child: InkWell(
+                        onTap: () => _showImageDialog(context, imageUrl, petType),
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: _buildPetThumbnail(imageUrl, size: 44),
+                        ),
+                      ),
                     ),
                   ),
                 ),
