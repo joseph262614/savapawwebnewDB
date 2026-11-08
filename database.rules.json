@@ -242,8 +242,8 @@
         "priority"
       ],
       "$announcementId": {
-        // Only Admins can create, update, or remove announcements
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        // Admins and Partners can create, update, or remove announcements
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner')",
         ".validate": "!newData.exists() || newData.hasChildren(['title', 'message', 'timestamp'])"
       }
     },

@@ -12,7 +12,6 @@ import 'admin_pet_breeds_screen.dart';
 import 'admin_support_chat_screen.dart';
 import 'admin_community_screen.dart';
 import 'admin_add_pet_screen.dart';
-import 'admin_report_pet_screen.dart';
 import 'admin_pet_listings_screen.dart';
 import '../widgets/app_optimized_image.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -536,32 +535,6 @@ class _AdminScreenState extends State<AdminScreen> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const Spacer(),
-          // Quick Post Pet Button
-          OutlinedButton.icon(
-            onPressed: () => AdminAddPetScreen.show(context),
-            icon: const Icon(Icons.post_add_rounded, size: 16, color: AppTheme.primaryOrange),
-            label: const Text('Post Pet', style: TextStyle(color: AppTheme.primaryOrange, fontWeight: FontWeight.bold, fontSize: 13)),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppTheme.primaryOrange),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            ),
-          ),
-          const SizedBox(width: 10),
-          // Quick Report Pet Button
-          ElevatedButton.icon(
-            onPressed: () => AdminReportPetScreen.show(context),
-            icon: const Icon(Icons.emergency_outlined, size: 16),
-            label: const Text('Report Pet', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFC62828),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            ),
-          ),
-          const SizedBox(width: 16),
           // Admin info
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

@@ -48,8 +48,19 @@ class AppOptimizedImage extends StatelessWidget {
     try {
       final commaIdx = raw.indexOf(',');
       final base64Str = commaIdx != -1 ? raw.substring(commaIdx + 1) : raw;
-      final cleanBase64 = base64Str.replaceAll('\n', '').replaceAll('\r', '').replaceAll(' ', '').trim();
-      final bytes = base64Decode(cleanBase64);
+      String clean = base64Str.replaceAll(RegExp(r'\s+'), '').trim();
+      // Replace URL-safe base64 characters
+      clean = clean.replaceAll('-', '+').replaceAll('_', '/');
+      // Normalize base64 padding
+      final remainder = clean.length % 4;
+      if (remainder == 2) {
+        clean += '==';
+      } else if (remainder == 3) {
+        clean += '=';
+      } else if (remainder == 1) {
+        clean = clean.substring(0, clean.length - 1);
+      }
+      final bytes = base64Decode(clean);
       _decodedBytesCache.put(key, bytes);
       return bytes;
     } catch (e) {
@@ -64,6 +75,10 @@ class AppOptimizedImage extends StatelessWidget {
     final driveMatch = RegExp(r'drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)').firstMatch(trimmed);
     if (driveMatch != null) {
       return 'https://lh3.googleusercontent.com/d/${driveMatch.group(1)}';
+    }
+    final driveIdMatch = RegExp(r'drive\.google\.com\/(?:open\?id=|uc\?id=)([a-zA-Z0-9_-]+)').firstMatch(trimmed);
+    if (driveIdMatch != null) {
+      return 'https://lh3.googleusercontent.com/d/${driveIdMatch.group(1)}';
     }
     if (trimmed.contains('dropbox.com') && trimmed.endsWith('?dl=0')) {
       return '${trimmed.substring(0, trimmed.length - 5)}?raw=1';
@@ -80,7 +95,7 @@ class AppOptimizedImage extends StatelessWidget {
     final url = _normalizeImageUrl(rawUrl);
 
     Widget content;
-    final isBase64 = url.startsWith('data:image') ||
+    final isBase64 = url.startsWith('data:') ||
         (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('assets/'));
 
     if (isBase64) {

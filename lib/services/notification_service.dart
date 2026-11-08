@@ -47,8 +47,8 @@ class NotificationService extends ChangeNotifier {
       }
 
       fetched.sort((a, b) {
-        final tA = a['timestamp'] is int ? a['timestamp'] as int : 0;
-        final tB = b['timestamp'] is int ? b['timestamp'] as int : 0;
+        final tA = (a['timestamp'] as num?)?.toInt() ?? 0;
+        final tB = (b['timestamp'] as num?)?.toInt() ?? 0;
         return tB.compareTo(tA);
       });
 

@@ -1268,11 +1268,11 @@ class _AdminSupportChatScreenState extends State<AdminSupportChatScreen>
                   .orderByChild('timestamp')
                   .onValue,
               builder: (context, msgSnap) {
-                if (!msgSnap.hasData || msgSnap.data?.snapshot.value == null) {
+                if (msgSnap.connectionState == ConnectionState.waiting && !msgSnap.hasData) {
                   return const Center(child: CircularProgressIndicator(color: AppTheme.primaryOrange));
                 }
 
-                final raw = msgSnap.data!.snapshot.value;
+                final raw = msgSnap.data?.snapshot.value;
                 final List<Map<String, dynamic>> messages = [];
 
                 if (raw is Map) {
@@ -1281,6 +1281,22 @@ class _AdminSupportChatScreenState extends State<AdminSupportChatScreen>
                       messages.add(Map<String, dynamic>.from(val));
                     }
                   });
+                }
+
+                if (messages.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey.shade400),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No messages yet. Send a reply below to start.',
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 messages.sort((a, b) {

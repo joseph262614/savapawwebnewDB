@@ -1144,10 +1144,19 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
         borderRadius: BorderRadius.circular(16),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: DataTable(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: MediaQuery.of(context).size.width > 900
+                  ? MediaQuery.of(context).size.width - 280
+                  : 900,
+            ),
+            child: DataTable(
           headingRowColor: WidgetStateProperty.all(const Color(0xFFF9F9FB)),
+          headingRowHeight: 52,
+          dataRowMinHeight: 74,
+          dataRowMaxHeight: 86,
           horizontalMargin: 24,
-          columnSpacing: 20,
+          columnSpacing: 28,
           columns: const [
             DataColumn(label: Text('Photo', style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(label: Text('Animal & ID', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -1174,183 +1183,212 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             return DataRow(
               cells: [
                 DataCell(
-                  InkWell(
-                    onTap: () => _showImageDialog(context, imageUrl, petType),
-                    child: _buildPetThumbnail(imageUrl, size: 48),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: InkWell(
+                      onTap: () => _showImageDialog(context, imageUrl, petType),
+                      child: _buildPetThumbnail(imageUrl, size: 50),
+                    ),
                   ),
                 ),
                 DataCell(
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(petType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          if (isMissing) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFEBEE),
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: const Color(0xFFEF9A9A)),
-                              ),
-                              child: const Text(
-                                'MISSING',
-                                style: TextStyle(
-                                  color: Color(0xFFC62828),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      if (isMissing && petName != null && petName.isNotEmpty)
-                        Text(
-                          'Pet: $petName',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFC62828)),
-                        ),
-                      if (isMissing && contactPhone != null && contactPhone.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.phone, size: 10, color: Colors.grey[700]),
-                            const SizedBox(width: 2),
-                            Text(
-                              contactPhone,
-                              style: TextStyle(fontSize: 10, color: Colors.grey[700]),
-                            ),
+                            Text(petType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                            if (isMissing) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFEBEE),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: const Color(0xFFEF9A9A)),
+                                ),
+                                child: const Text(
+                                  'MISSING',
+                                  style: TextStyle(
+                                    color: Color(0xFFC62828),
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                      Text(
-                        '#${key.length > 8 ? key.substring(0, 8) : key}',
-                        style: TextStyle(fontSize: 10, color: Colors.grey[500]),
-                      ),
-                    ],
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 220,
-                    child: Text(
-                      desc,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 180,
-                    child: Text(
-                      address,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  isRescued
-                      ? Tooltip(
-                          message: 'Rescue Verified & Locked. Status cannot be modified.',
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.verified, size: 14, color: Colors.green),
-                                SizedBox(width: 5),
-                                Text(
-                                  'Rescued (Locked)',
-                                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
-                                ),
-                              ],
-                            ),
+                        const SizedBox(height: 3),
+                        if (isMissing && petName != null && petName.isNotEmpty) ...[
+                          Text(
+                            'Pet: $petName',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFC62828)),
                           ),
-                        )
-                      : InkWell(
-                          onTap: () => _showStatusActionModal(context, report),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Tooltip(
-                            message: 'Click to update rescue status',
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 2),
+                        ],
+                        if (isMissing && contactPhone != null && contactPhone.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Icon(Icons.phone, size: 10, color: Colors.grey[700]),
+                              const SizedBox(width: 2),
+                              Text(
+                                contactPhone,
+                                style: TextStyle(fontSize: 10, color: Colors.grey[700]),
                               ),
-                              child: Row(
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                        ],
+                        Text(
+                          '#${key.length > 8 ? key.substring(0, 8) : key}',
+                          style: TextStyle(fontSize: 10.5, color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      width: 230,
+                      child: Text(
+                        desc,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12.5, height: 1.35),
+                      ),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      width: 200,
+                      child: Text(
+                        address,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12.5, height: 1.35),
+                      ),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: isRescued
+                        ? Tooltip(
+                            message: 'Rescue Verified & Locked. Status cannot be modified.',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                              ),
+                              child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
-                                  const SizedBox(width: 6),
-                                  Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
-                                  const SizedBox(width: 4),
-                                  Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                  Icon(Icons.verified, size: 14, color: Colors.green),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Rescued (Locked)',
+                                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                                  ),
                                 ],
                               ),
                             ),
+                          )
+                        : InkWell(
+                            onTap: () => _showStatusActionModal(context, report),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Tooltip(
+                              message: 'Click to update rescue status',
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
+                                    const SizedBox(width: 6),
+                                    Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                                    const SizedBox(width: 4),
+                                    Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
+                  ),
+                ),
+                DataCell(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(timeStr, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                  ),
+                ),
+                DataCell(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Open Maps',
+                          icon: const Icon(Icons.map_outlined, size: 18, color: AppTheme.primaryTeal),
+                          onPressed: () {
+                            double? pLat;
+                            double? pLng;
+                            final rLat = report['lat'];
+                            final rLng = report['lng'];
+                            if (rLat is num) pLat = rLat.toDouble();
+                            if (rLng is num) pLng = rLng.toDouble();
+                            if (pLat == null && rLat is String) pLat = double.tryParse(rLat);
+                            if (pLng == null && rLng is String) pLng = double.tryParse(rLng);
+                            final coords = (pLat != null && pLng != null) ? LatLng(pLat, pLng) : const LatLng(14.5320, 121.0781);
+                            AdminMapDialog.showLocation(
+                              context,
+                              location: coords,
+                              title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
+                              landmark: address,
+                            );
+                          },
                         ),
-                ),
-                DataCell(
-                  Text(timeStr, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                ),
-                DataCell(
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        tooltip: 'Open Maps',
-                        icon: const Icon(Icons.map_outlined, size: 18, color: AppTheme.primaryTeal),
-                        onPressed: () {
-                          double? pLat;
-                          double? pLng;
-                          final rLat = report['lat'];
-                          final rLng = report['lng'];
-                          if (rLat is num) pLat = rLat.toDouble();
-                          if (rLng is num) pLng = rLng.toDouble();
-                          if (pLat == null && rLat is String) pLat = double.tryParse(rLat);
-                          if (pLng == null && rLng is String) pLng = double.tryParse(rLng);
-                          final coords = (pLat != null && pLng != null) ? LatLng(pLat, pLng) : const LatLng(14.5320, 121.0781);
-                          AdminMapDialog.showLocation(
-                            context,
-                            location: coords,
-                            title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
-                            landmark: address,
-                          );
-                        },
-                      ),
-                      IconButton(
-                        tooltip: 'View Details',
-                        icon: const Icon(Icons.visibility_outlined, size: 18, color: AppTheme.primaryOrange),
-                        onPressed: () => _showReportDetailsDialog(context, report),
-                      ),
-                      IconButton(
-                        tooltip: 'Delete Report',
-                        icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-                        onPressed: () => _confirmDeleteReport(context, key, petType),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        IconButton(
+                          tooltip: 'View Details',
+                          icon: const Icon(Icons.visibility_outlined, size: 18, color: AppTheme.primaryOrange),
+                          onPressed: () => _showReportDetailsDialog(context, report),
+                        ),
+                        const SizedBox(width: 6),
+                        IconButton(
+                          tooltip: 'Delete Report',
+                          icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                          onPressed: () => _confirmDeleteReport(context, key, petType),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             );
           }).toList(),
+            ),
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildMobileCards(List<Map<String, dynamic>> reports) {

@@ -956,7 +956,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
   }
 
   Widget _buildImageWidget(String? url) {
-    if (url == null || url.isEmpty) return const SizedBox.shrink();
+    if (url == null || url.trim().isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -971,6 +971,20 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
         imageUrl: url,
         fit: BoxFit.contain,
         borderRadius: BorderRadius.circular(10),
+        errorWidget: Container(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 36),
+              const SizedBox(height: 6),
+              Text(
+                'Image unavailable',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
