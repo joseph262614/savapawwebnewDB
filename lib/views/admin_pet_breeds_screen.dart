@@ -344,7 +344,7 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
         title: 'DOGS & BREEDS',
         value: '$totalDogs Dogs',
         subtitle: '$dogBreedCount unique breeds • $adoptedDogs adopted',
-        badge: '🐶 Canines',
+        badge: 'Canines',
         icon: Icons.pets,
         accentColor: const Color(0xFF1565C0),
         bgColor: const Color(0xFFE3F2FD),
@@ -353,7 +353,7 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
         title: 'CATS & BREEDS',
         value: '$totalCats Cats',
         subtitle: '$catBreedCount unique breeds • $adoptedCats adopted',
-        badge: '🐱 Felines',
+        badge: 'Felines',
         icon: Icons.cruelty_free,
         accentColor: const Color(0xFF7B1FA2),
         bgColor: const Color(0xFFF3E5F5),
@@ -1965,7 +1965,7 @@ class _SummaryReportDialogState extends State<_SummaryReportDialog> {
     report.writeln('• Scheduled Handover Pickups: $scheduled');
     report.writeln('• Center Catalog Inventory: ${widget.availablePets} pets ready for adoption');
     report.writeln('----------------------------------------------------');
-    report.writeln('🐶🐱 SPECIES BREAKDOWN (THIS PERIOD)');
+    report.writeln('SPECIES BREAKDOWN (THIS PERIOD)');
     report.writeln('• Dogs: $dogsListed listed, $dogsAdopted adopted');
     report.writeln('• Cats: $catsListed listed, $catsAdopted adopted');
     if (otherListed > 0) {
@@ -2446,12 +2446,12 @@ class _SummaryReportDialogState extends State<_SummaryReportDialog> {
                                       ],
                                     ),
                                     const SizedBox(height: 12),
-                                    _buildSpeciesRow('🐶 Dogs', '$dogsListed listed', '$dogsAdopted adopted'),
+                                    _buildSpeciesRow('Dogs', '$dogsListed listed', '$dogsAdopted adopted'),
                                     const Divider(height: 16),
-                                    _buildSpeciesRow('🐱 Cats', '$catsListed listed', '$catsAdopted adopted'),
+                                    _buildSpeciesRow('Cats', '$catsListed listed', '$catsAdopted adopted'),
                                     if (otherListed > 0) ...[
                                       const Divider(height: 16),
-                                      _buildSpeciesRow('🐾 Others', '$otherListed listed', '0 adopted'),
+                                      _buildSpeciesRow('Others', '$otherListed listed', '0 adopted'),
                                     ],
                                   ],
                                 ),
