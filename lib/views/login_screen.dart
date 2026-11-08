@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           (route) => false,
         );
       } else {
-        setState(() => _errorMessage = 'Access denied. This portal is for administrators only.');
+        setState(() => _errorMessage = 'Access denied. This portal is for admin users only.');
         await authViewModel.signOut();
       }
     }

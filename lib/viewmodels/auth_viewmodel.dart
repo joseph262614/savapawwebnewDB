@@ -161,7 +161,7 @@ class AuthViewModel extends ChangeNotifier {
         if (!isAdminUser) {
           await _auth.signOut();
           _isAdminSession = false;
-          return "Access denied. This portal is for administrators only.";
+          return "Access denied. This portal is for admin users only.";
         }
       }
       return null;

@@ -65,7 +65,7 @@ class _AdminScreenState extends State<AdminScreen> {
       }
       await authViewModel.signOut();
       if (mounted) {
-        _redirectToLogin('Access denied. Administrator privileges required.');
+        _redirectToLogin('Access denied. This portal is for admin users only.');
       }
     }
   }
