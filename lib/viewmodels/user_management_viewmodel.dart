@@ -236,9 +236,21 @@ class UserManagementViewModel extends ChangeNotifier {
 
   /// Toggle user verification status
   Future<void> toggleUserVerification(String uid, bool currentStatus) async {
-    await _db.ref().child('users').child(uid).update({
-      'isVerified': !currentStatus,
-    });
+    final newStatus = !currentStatus;
+    final updates = <String, dynamic>{
+      'users/$uid/isVerified': newStatus,
+      'users/$uid/updatedAt': ServerValue.timestamp,
+    };
+    if (!newStatus) {
+      // Verification revoked by admin: update verification request so user can re-verify
+      updates['verificationRequests/$uid/status'] = 'revoked';
+      updates['verificationRequests/$uid/revokedAt'] = ServerValue.timestamp;
+    } else {
+      // User verified directly by admin
+      updates['verificationRequests/$uid/status'] = 'approved';
+      updates['verificationRequests/$uid/reviewedAt'] = ServerValue.timestamp;
+    }
+    await _db.ref().update(updates);
   }
 
   /// Ban or unban user
