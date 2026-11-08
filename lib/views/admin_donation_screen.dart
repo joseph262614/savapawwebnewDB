@@ -264,7 +264,7 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F8),
       appBar: AppBar(
-        title: const Text('Donation & QR Setup'),
+        title: const Text('Donation & Bank Setup'),
         backgroundColor: AppTheme.primaryOrange,
         foregroundColor: Colors.white,
       ),

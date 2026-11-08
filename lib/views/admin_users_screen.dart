@@ -84,7 +84,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Users'),
+        title: const Text('Manage Users & Roles'),
         backgroundColor: AppTheme.primaryOrange,
         foregroundColor: Colors.white,
       ),

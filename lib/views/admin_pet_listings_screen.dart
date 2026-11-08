@@ -87,7 +87,7 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
       appBar: widget.embeddedMode
           ? null
           : AppBar(
-              title: const Text('Shelter Pet Listings Management'),
+              title: const Text('Shelter Pet Listings'),
               backgroundColor: Colors.white,
               foregroundColor: Colors.black87,
               elevation: 1,

@@ -48,7 +48,7 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
       appBar: widget.embeddedMode
           ? null
           : AppBar(
-              title: const Text('Pet Breeds & Adoption Analytics'),
+              title: const Text('Pet Breeds & Analytics'),
               backgroundColor: Colors.white,
               foregroundColor: Colors.black87,
               elevation: 1,

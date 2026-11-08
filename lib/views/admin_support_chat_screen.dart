@@ -452,7 +452,7 @@ class _AdminSupportChatScreenState extends State<AdminSupportChatScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Support Chat & Queue'),
+        title: const Text('Support Helpdesk & Queue'),
         backgroundColor: AppTheme.primaryOrange,
         foregroundColor: Colors.white,
       ),

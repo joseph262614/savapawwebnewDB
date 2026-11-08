@@ -862,7 +862,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Reported Pets in Need (Rescue Hub)',
+                                'Reported Pets (Rescue Hub)',
                                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 4),

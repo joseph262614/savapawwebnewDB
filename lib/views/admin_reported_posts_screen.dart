@@ -141,7 +141,7 @@ class _AdminReportedPostsScreenState extends State<AdminReportedPostsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reported Posts'),
+        title: const Text('Reported Community Posts'),
         backgroundColor: AppTheme.primaryOrange,
         foregroundColor: Colors.white,
       ),

@@ -105,21 +105,21 @@ class _AdminScreenState extends State<AdminScreen> {
         onNavigateToPetListings: () => setState(() => _selectedNavIndex = 1),
         onNavigateToVerification: () => setState(() => _selectedNavIndex = 2),
         onNavigateToUsers: () => setState(() => _selectedNavIndex = 3),
-        onNavigateToReportedPosts: () => setState(() => _selectedNavIndex = 4),
-        onNavigateToDonation: () => setState(() => _selectedNavIndex = 5),
-        onNavigateToReportedPets: () => setState(() => _selectedNavIndex = 6),
-        onNavigateToBreeds: () => setState(() => _selectedNavIndex = 7),
-        onNavigateToSupportChat: () => setState(() => _selectedNavIndex = 8),
+        onNavigateToReportedPets: () => setState(() => _selectedNavIndex = 4),
+        onNavigateToBreeds: () => setState(() => _selectedNavIndex = 5),
+        onNavigateToSupportChat: () => setState(() => _selectedNavIndex = 6),
+        onNavigateToReportedPosts: () => setState(() => _selectedNavIndex = 7),
+        onNavigateToDonation: () => setState(() => _selectedNavIndex = 8),
         onNavigateToCommunity: () => setState(() => _selectedNavIndex = 9),
       ),
       const AdminPetListingsScreen(embeddedMode: true),
       const AdminVerificationRequestsScreen(embeddedMode: true),
       const AdminUsersScreen(embeddedMode: true),
-      const AdminReportedPostsScreen(embeddedMode: true),
-      const AdminDonationScreen(embeddedMode: true),
       const AdminReportedPetsScreen(embeddedMode: true),
       const AdminPetBreedsScreen(embeddedMode: true),
       const AdminSupportChatScreen(embeddedMode: true),
+      const AdminReportedPostsScreen(embeddedMode: true),
+      const AdminDonationScreen(embeddedMode: true),
       const AdminCommunityScreen(embeddedMode: true),
     ];
 
@@ -269,20 +269,6 @@ class _AdminScreenState extends State<AdminScreen> {
             label: 'Manage Users & Roles',
             isExpanded: isDesktop,
           ),
-          _buildNavItem(
-            index: 4,
-            icon: Icons.flag_outlined,
-            activeIcon: Icons.flag,
-            label: 'Reported Community Posts',
-            isExpanded: isDesktop,
-          ),
-          _buildNavItem(
-            index: 5,
-            icon: Icons.volunteer_activism_outlined,
-            activeIcon: Icons.volunteer_activism,
-            label: 'Donation & Bank Setup',
-            isExpanded: isDesktop,
-          ),
           StreamBuilder<DatabaseEvent>(
             stream: FirebaseDatabase.instance.ref().child('reports').orderByChild('status').equalTo('Open').onValue,
             builder: (context, snap) {
@@ -294,7 +280,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     .length;
               }
               return _buildNavItem(
-                index: 6,
+                index: 4,
                 icon: Icons.emergency_outlined,
                 activeIcon: Icons.emergency,
                 label: 'Reported Pets (Rescue Hub)',
@@ -304,7 +290,7 @@ class _AdminScreenState extends State<AdminScreen> {
             },
           ),
           _buildNavItem(
-            index: 7,
+            index: 5,
             icon: Icons.pets_outlined,
             activeIcon: Icons.pets,
             label: 'Pet Breeds & Analytics',
@@ -323,7 +309,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 waitingCount = (snap.data!.snapshot.value as Map).length;
               }
               return _buildNavItem(
-                index: 8,
+                index: 6,
                 icon: Icons.support_agent_outlined,
                 activeIcon: Icons.support_agent,
                 label: 'Support Helpdesk & Queue',
@@ -331,6 +317,20 @@ class _AdminScreenState extends State<AdminScreen> {
                 badgeCount: waitingCount,
               );
             },
+          ),
+          _buildNavItem(
+            index: 7,
+            icon: Icons.flag_outlined,
+            activeIcon: Icons.flag,
+            label: 'Reported Community Posts',
+            isExpanded: isDesktop,
+          ),
+          _buildNavItem(
+            index: 8,
+            icon: Icons.volunteer_activism_outlined,
+            activeIcon: Icons.volunteer_activism,
+            label: 'Donation & Bank Setup',
+            isExpanded: isDesktop,
           ),
           StreamBuilder<DatabaseEvent>(
             stream: FirebaseDatabase.instance.ref().child('announcements').onValue,
@@ -506,11 +506,11 @@ class _AdminScreenState extends State<AdminScreen> {
       'Shelter Pet Listings',
       'Verification Requests',
       'Manage Users & Roles',
-      'Reported Community Posts',
-      'Donation & Bank Setup',
       'Reported Pets (Rescue Hub)',
       'Pet Breeds & Analytics',
       'Support Helpdesk & Queue',
+      'Reported Community Posts',
+      'Donation & Bank Setup',
       'Community & Announcements',
     ];
     final title = _selectedNavIndex < titles.length ? titles[_selectedNavIndex] : 'Admin Portal';
@@ -596,47 +596,47 @@ class _AdminScreenState extends State<AdminScreen> {
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
             selectedIcon: Icon(Icons.inventory_2),
-            label: 'Pet Listings',
+            label: 'Shelter Pet Listings',
           ),
           NavigationDestination(
             icon: Icon(Icons.verified_user_outlined),
             selectedIcon: Icon(Icons.verified_user),
-            label: 'Verification',
+            label: 'Verification Requests',
           ),
           NavigationDestination(
             icon: Icon(Icons.people_outline),
             selectedIcon: Icon(Icons.people),
-            label: 'Users & Roles',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.flag_outlined),
-            selectedIcon: Icon(Icons.flag),
-            label: 'Flagged Posts',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.volunteer_activism_outlined),
-            selectedIcon: Icon(Icons.volunteer_activism),
-            label: 'Bank & QR',
+            label: 'Manage Users & Roles',
           ),
           NavigationDestination(
             icon: Icon(Icons.emergency_outlined),
             selectedIcon: Icon(Icons.emergency),
-            label: 'Rescue Hub',
+            label: 'Reported Pets (Rescue Hub)',
           ),
           NavigationDestination(
             icon: Icon(Icons.pets_outlined),
             selectedIcon: Icon(Icons.pets),
-            label: 'Breeds',
+            label: 'Pet Breeds & Analytics',
           ),
           NavigationDestination(
             icon: Icon(Icons.support_agent_outlined),
             selectedIcon: Icon(Icons.support_agent),
-            label: 'Support Queue',
+            label: 'Support Helpdesk & Queue',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.flag_outlined),
+            selectedIcon: Icon(Icons.flag),
+            label: 'Reported Community Posts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.volunteer_activism_outlined),
+            selectedIcon: Icon(Icons.volunteer_activism),
+            label: 'Donation & Bank Setup',
           ),
           NavigationDestination(
             icon: Icon(Icons.campaign_outlined),
             selectedIcon: Icon(Icons.campaign),
-            label: 'Community',
+            label: 'Community & Announcements',
           ),
         ],
       ),
