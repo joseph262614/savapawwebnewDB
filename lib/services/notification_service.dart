@@ -84,12 +84,6 @@ class NotificationService extends ChangeNotifier {
     };
 
     await ref.set(announcementData);
-
-    // Show native system desktop alert outside the browser window
-    PlatformNotification.showNotification(
-      title: '📢 Broadcast Sent: $title',
-      body: message,
-    );
   }
 
   /// Delete an announcement

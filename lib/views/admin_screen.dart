@@ -40,6 +40,14 @@ class AdminScreen extends StatefulWidget {
 
 class _AdminScreenState extends State<AdminScreen> {
   int _selectedNavIndex = 0;
+  final Set<int> _dismissedNavIndices = <int>{};
+
+  void _selectNav(int index) {
+    setState(() {
+      _selectedNavIndex = index;
+      _dismissedNavIndices.add(index);
+    });
+  }
 
   @override
   void initState() {
@@ -102,15 +110,15 @@ class _AdminScreenState extends State<AdminScreen> {
     // Content pages for sidebar navigation
     final pages = [
       _DashboardContent(
-        onNavigateToPetListings: () => setState(() => _selectedNavIndex = 1),
-        onNavigateToVerification: () => setState(() => _selectedNavIndex = 2),
-        onNavigateToUsers: () => setState(() => _selectedNavIndex = 3),
-        onNavigateToReportedPets: () => setState(() => _selectedNavIndex = 4),
-        onNavigateToBreeds: () => setState(() => _selectedNavIndex = 5),
-        onNavigateToSupportChat: () => setState(() => _selectedNavIndex = 6),
-        onNavigateToReportedPosts: () => setState(() => _selectedNavIndex = 7),
-        onNavigateToDonation: () => setState(() => _selectedNavIndex = 8),
-        onNavigateToCommunity: () => setState(() => _selectedNavIndex = 9),
+        onNavigateToPetListings: () => _selectNav(1),
+        onNavigateToVerification: () => _selectNav(2),
+        onNavigateToUsers: () => _selectNav(3),
+        onNavigateToReportedPets: () => _selectNav(4),
+        onNavigateToBreeds: () => _selectNav(5),
+        onNavigateToSupportChat: () => _selectNav(6),
+        onNavigateToReportedPosts: () => _selectNav(7),
+        onNavigateToDonation: () => _selectNav(8),
+        onNavigateToCommunity: () => _selectNav(9),
       ),
       const AdminPetListingsScreen(embeddedMode: true),
       const AdminVerificationRequestsScreen(embeddedMode: true),
@@ -421,11 +429,13 @@ class _AdminScreenState extends State<AdminScreen> {
     int? badgeCount,
   }) {
     final isActive = _selectedNavIndex == index;
+    final isDismissed = isActive || _dismissedNavIndices.contains(index);
+    final effectiveBadge = isDismissed ? null : badgeCount;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isExpanded ? 12 : 8, vertical: 2),
       child: _HoverButton(
-        onTap: enabled ? () => setState(() => _selectedNavIndex = index) : null,
+        onTap: enabled ? () => _selectNav(index) : null,
         borderRadius: BorderRadius.circular(12),
         hoverColor: Colors.white.withValues(alpha: 0.08),
         child: AnimatedContainer(
@@ -453,7 +463,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             : Colors.white24,
                     size: 22,
                   ),
-                  if (!isExpanded && badgeCount != null && badgeCount > 0)
+                  if (!isExpanded && effectiveBadge != null && effectiveBadge > 0)
                     Positioned(
                       top: -2,
                       right: -2,
@@ -486,7 +496,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (badgeCount != null && badgeCount > 0) ...[
+                if (effectiveBadge != null && effectiveBadge > 0) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -495,7 +505,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '$badgeCount',
+                      '$effectiveBadge',
                       style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -606,7 +616,7 @@ class _AdminScreenState extends State<AdminScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedNavIndex.clamp(0, 9),
         onDestinationSelected: (index) {
-          if (index <= 9) setState(() => _selectedNavIndex = index);
+          if (index <= 9) _selectNav(index);
         },
         destinations: const [
           NavigationDestination(
