@@ -236,9 +236,9 @@ class _AdminScreenState extends State<AdminScreen> {
               }
               return _buildNavItem(
                 index: 1,
-                icon: Icons.pets_outlined,
-                activeIcon: Icons.pets,
-                label: 'Pet Listings',
+                icon: Icons.inventory_2_outlined,
+                activeIcon: Icons.inventory_2,
+                label: 'Shelter Pet Listings',
                 isExpanded: isDesktop,
                 badgeCount: availableCount,
               );
@@ -256,7 +256,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 index: 2,
                 icon: Icons.verified_user_outlined,
                 activeIcon: Icons.verified_user,
-                label: 'Verification',
+                label: 'Verification Requests',
                 isExpanded: isDesktop,
                 badgeCount: pendingCount,
               );
@@ -266,21 +266,21 @@ class _AdminScreenState extends State<AdminScreen> {
             index: 3,
             icon: Icons.people_outline,
             activeIcon: Icons.people,
-            label: 'Users',
+            label: 'Manage Users & Roles',
             isExpanded: isDesktop,
           ),
           _buildNavItem(
             index: 4,
             icon: Icons.flag_outlined,
             activeIcon: Icons.flag,
-            label: 'Reported Posts',
+            label: 'Reported Community Posts',
             isExpanded: isDesktop,
           ),
           _buildNavItem(
             index: 5,
             icon: Icons.volunteer_activism_outlined,
             activeIcon: Icons.volunteer_activism,
-            label: 'Donations',
+            label: 'Donation & Bank Setup',
             isExpanded: isDesktop,
           ),
           StreamBuilder<DatabaseEvent>(
@@ -297,7 +297,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 index: 6,
                 icon: Icons.emergency_outlined,
                 activeIcon: Icons.emergency,
-                label: 'Reported Pets',
+                label: 'Reported Pets (Rescue Hub)',
                 isExpanded: isDesktop,
                 badgeCount: openCount,
               );
@@ -305,9 +305,9 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
           _buildNavItem(
             index: 7,
-            icon: Icons.insights_outlined,
-            activeIcon: Icons.insights,
-            label: 'Breeds & Analytics',
+            icon: Icons.pets_outlined,
+            activeIcon: Icons.pets,
+            label: 'Pet Breeds & Analytics',
             isExpanded: isDesktop,
           ),
           StreamBuilder<DatabaseEvent>(
@@ -326,7 +326,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 index: 8,
                 icon: Icons.support_agent_outlined,
                 activeIcon: Icons.support_agent,
-                label: 'Support Chat',
+                label: 'Support Helpdesk & Queue',
                 isExpanded: isDesktop,
                 badgeCount: waitingCount,
               );
@@ -343,7 +343,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 index: 9,
                 icon: Icons.campaign_outlined,
                 activeIcon: Icons.campaign,
-                label: 'Community & Alerts',
+                label: 'Community & Announcements',
                 isExpanded: isDesktop,
                 badgeCount: alertCount,
               );
@@ -505,13 +505,13 @@ class _AdminScreenState extends State<AdminScreen> {
       'Dashboard',
       'Shelter Pet Listings',
       'Verification Requests',
-      'Manage Users',
-      'Reported Posts',
-      'Donation Setup',
+      'Manage Users & Roles',
+      'Reported Community Posts',
+      'Donation & Bank Setup',
       'Reported Pets (Rescue Hub)',
-      'Pet Breeds & Adoption Analytics',
-      'Support Queue & Live Chat',
-      'Community & Alerts',
+      'Pet Breeds & Analytics',
+      'Support Helpdesk & Queue',
+      'Community & Announcements',
     ];
     final title = _selectedNavIndex < titles.length ? titles[_selectedNavIndex] : 'Admin Portal';
 
@@ -594,9 +594,9 @@ class _AdminScreenState extends State<AdminScreen> {
             label: 'Dashboard',
           ),
           NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view_rounded),
-            label: 'Listings',
+            icon: Icon(Icons.inventory_2_outlined),
+            selectedIcon: Icon(Icons.inventory_2),
+            label: 'Pet Listings',
           ),
           NavigationDestination(
             icon: Icon(Icons.verified_user_outlined),
@@ -606,17 +606,17 @@ class _AdminScreenState extends State<AdminScreen> {
           NavigationDestination(
             icon: Icon(Icons.people_outline),
             selectedIcon: Icon(Icons.people),
-            label: 'Users',
+            label: 'Users & Roles',
           ),
           NavigationDestination(
             icon: Icon(Icons.flag_outlined),
             selectedIcon: Icon(Icons.flag),
-            label: 'Reports',
+            label: 'Flagged Posts',
           ),
           NavigationDestination(
             icon: Icon(Icons.volunteer_activism_outlined),
             selectedIcon: Icon(Icons.volunteer_activism),
-            label: 'Donations',
+            label: 'Bank & QR',
           ),
           NavigationDestination(
             icon: Icon(Icons.emergency_outlined),
@@ -631,7 +631,7 @@ class _AdminScreenState extends State<AdminScreen> {
           NavigationDestination(
             icon: Icon(Icons.support_agent_outlined),
             selectedIcon: Icon(Icons.support_agent),
-            label: 'Support',
+            label: 'Support Queue',
           ),
           NavigationDestination(
             icon: Icon(Icons.campaign_outlined),
@@ -766,9 +766,9 @@ class _DashboardContent extends StatelessWidget {
                   SizedBox(
                     width: isDesktop ? cardWidth : double.infinity,
                     child: _AdminActionCard(
-                      icon: Icons.grid_view_rounded,
+                      icon: Icons.inventory_2_outlined,
                       title: 'Shelter Pet Listings',
-                      subtitle: 'View, edit, toggle adoption status & manage all shelter pets',
+                      subtitle: 'Manage adoption catalog, view listed pets, toggle availability & edit profiles',
                       color: const Color(0xFFE65100),
                       onTap: onNavigateToPetListings,
                     ),
@@ -776,19 +776,9 @@ class _DashboardContent extends StatelessWidget {
                   SizedBox(
                     width: isDesktop ? cardWidth : double.infinity,
                     child: _AdminActionCard(
-                      icon: Icons.pets,
-                      title: 'Pet Breeds & Adoptions',
-                      subtitle: 'Dog & cat breed classification, counts, and adopted metrics',
-                      color: const Color(0xFF1565C0),
-                      onTap: onNavigateToBreeds,
-                    ),
-                  ),
-                  SizedBox(
-                    width: isDesktop ? cardWidth : double.infinity,
-                    child: _AdminActionCard(
-                      icon: Icons.verified_user,
+                      icon: Icons.verified_user_outlined,
                       title: 'Verification Requests',
-                      subtitle: 'Review user IDs and face scans',
+                      subtitle: 'Review user government IDs & face scan verifications',
                       color: AppTheme.primaryTeal,
                       onTap: onNavigateToVerification,
                     ),
@@ -796,39 +786,19 @@ class _DashboardContent extends StatelessWidget {
                   SizedBox(
                     width: isDesktop ? cardWidth : double.infinity,
                     child: _AdminActionCard(
-                      icon: Icons.people,
-                      title: 'Manage Users',
-                      subtitle: 'View and manage community members',
-                      color: AppTheme.primaryOrange,
+                      icon: Icons.people_outline,
+                      title: 'Manage Users & Roles',
+                      subtitle: 'Assign roles (foster/volunteer), manual verification, ban/unban',
+                      color: const Color(0xFF1565C0),
                       onTap: onNavigateToUsers,
                     ),
                   ),
                   SizedBox(
                     width: isDesktop ? cardWidth : double.infinity,
                     child: _AdminActionCard(
-                      icon: Icons.flag,
-                      title: 'Reported Posts',
-                      subtitle: 'Review reported community posts and reasons',
-                      color: Colors.redAccent,
-                      onTap: onNavigateToReportedPosts,
-                    ),
-                  ),
-                  SizedBox(
-                    width: isDesktop ? cardWidth : double.infinity,
-                    child: _AdminActionCard(
-                      icon: Icons.volunteer_activism,
-                      title: 'Donation & QR Setup',
-                      subtitle: 'Configure donation QR, bank details & org info',
-                      color: const Color(0xFF2E7D32),
-                      onTap: onNavigateToDonation,
-                    ),
-                  ),
-                  SizedBox(
-                    width: isDesktop ? cardWidth : double.infinity,
-                    child: _AdminActionCard(
-                      icon: Icons.emergency,
+                      icon: Icons.emergency_outlined,
                       title: 'Reported Pets (Rescue Hub)',
-                      subtitle: 'Coordinate live emergency reports & rescue operations',
+                      subtitle: 'Coordinate live emergency rescues, track status, view locations',
                       color: Colors.redAccent,
                       onTap: onNavigateToReportedPets,
                     ),
@@ -836,9 +806,19 @@ class _DashboardContent extends StatelessWidget {
                   SizedBox(
                     width: isDesktop ? cardWidth : double.infinity,
                     child: _AdminActionCard(
-                      icon: Icons.support_agent_rounded,
-                      title: 'Support Queue & Live Chat',
-                      subtitle: 'Review waiting user queue, accept tickets & live message',
+                      icon: Icons.pets_outlined,
+                      title: 'Pet Breeds & Analytics',
+                      subtitle: 'Dog & cat breed classification, catalog statistics & adoption rate',
+                      color: const Color(0xFFE65100),
+                      onTap: onNavigateToBreeds,
+                    ),
+                  ),
+                  SizedBox(
+                    width: isDesktop ? cardWidth : double.infinity,
+                    child: _AdminActionCard(
+                      icon: Icons.support_agent_outlined,
+                      title: 'Support Helpdesk & Queue',
+                      subtitle: 'Answer waiting users in queue, accept tickets & live chat',
                       color: const Color(0xFF00897B),
                       onTap: onNavigateToSupportChat,
                     ),
@@ -846,8 +826,28 @@ class _DashboardContent extends StatelessWidget {
                   SizedBox(
                     width: isDesktop ? cardWidth : double.infinity,
                     child: _AdminActionCard(
-                      icon: Icons.campaign,
-                      title: 'Community & Alerts',
+                      icon: Icons.flag_outlined,
+                      title: 'Reported Community Posts',
+                      subtitle: 'Review flagged community posts and take moderation action',
+                      color: Colors.deepOrange,
+                      onTap: onNavigateToReportedPosts,
+                    ),
+                  ),
+                  SizedBox(
+                    width: isDesktop ? cardWidth : double.infinity,
+                    child: _AdminActionCard(
+                      icon: Icons.volunteer_activism_outlined,
+                      title: 'Donation & Bank Setup',
+                      subtitle: 'Configure organization QR code image, bank name & accounts',
+                      color: const Color(0xFF2E7D32),
+                      onTap: onNavigateToDonation,
+                    ),
+                  ),
+                  SizedBox(
+                    width: isDesktop ? cardWidth : double.infinity,
+                    child: _AdminActionCard(
+                      icon: Icons.campaign_outlined,
+                      title: 'Community & Announcements',
                       subtitle: 'Broadcast alerts to app & devices, create official posts & manage feed',
                       color: const Color(0xFF6A1B9A),
                       onTap: onNavigateToCommunity,
