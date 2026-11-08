@@ -22,6 +22,17 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
   final _accountNumberController = TextEditingController();
   final _notesController = TextEditingController();
 
+  static const List<String> _presetBanks = [
+    'BDO',
+    'BPI',
+    'GoTyme',
+    'GCash',
+    'MariBank',
+    'Maya',
+    'Other',
+  ];
+  String? _selectedBank;
+
   Uint8List? _qrImageBytes;
   String? _qrImageFileName;
   String? _selectedQrBase64;
@@ -40,10 +51,19 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
       final snap = await FirebaseDatabase.instance.ref().child('donation_info').get();
       if (snap.exists && snap.value is Map) {
         final data = snap.value as Map;
+        final rawBank = data['bankName']?.toString().trim() ?? '';
+        String? matchedBank;
+        if (rawBank.isNotEmpty) {
+          matchedBank = _presetBanks.firstWhere(
+            (b) => b.toLowerCase() == rawBank.toLowerCase(),
+            orElse: () => 'Other',
+          );
+        }
         if (mounted) {
           setState(() {
             _accountNameController.text = data['accountName']?.toString() ?? '';
-            _bankNameController.text = data['bankName']?.toString() ?? '';
+            _bankNameController.text = (matchedBank != null && matchedBank != 'Other') ? matchedBank : rawBank;
+            _selectedBank = matchedBank;
             _accountNumberController.text = data['accountNumber']?.toString() ?? '';
             _notesController.text = data['notes']?.toString() ?? '';
             _existingQrImageUrl = data['qrImageUrl']?.toString();
@@ -409,17 +429,120 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Bank Name
-            TextFormField(
-              controller: _bankNameController,
-              decoration: const InputDecoration(
-                labelText: 'Bank / E-Wallet Provider *',
-                hintText: 'e.g. GCash / Maya / BDO / BPI',
-                prefixIcon: Icon(Icons.account_balance),
-                border: OutlineInputBorder(),
-              ),
-              validator: (v) => v == null || v.trim().isEmpty ? 'Enter the provider name' : null,
-              onChanged: (_) => setState(() {}),
+            // Bank / E-Wallet Provider Selection
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.account_balance, size: 16, color: Colors.grey.shade700),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Bank / E-Wallet Provider *',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _presetBanks.map((bank) {
+                    final isSelected = _selectedBank == bank;
+                    return ChoiceChip(
+                      label: Text(bank == 'Other' ? 'Others...' : bank),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedBank = bank;
+                          if (bank != 'Other') {
+                            _bankNameController.text = bank;
+                          } else if (_presetBanks.contains(_bankNameController.text)) {
+                            _bankNameController.clear();
+                          }
+                        });
+                      },
+                      selectedColor: const Color(0xFFFF926B).withValues(alpha: 0.25),
+                      side: BorderSide(
+                        color: isSelected ? const Color(0xFFE65100) : Colors.grey.shade300,
+                        width: isSelected ? 1.5 : 1,
+                      ),
+                      labelStyle: TextStyle(
+                        color: isSelected ? const Color(0xFFE65100) : Colors.black87,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 12.5,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 10),
+                FormField<String>(
+                  initialValue: _selectedBank,
+                  validator: (_) {
+                    if (_selectedBank == null || _selectedBank!.isEmpty) {
+                      return 'Please select a bank or e-wallet provider';
+                    }
+                    return null;
+                  },
+                  builder: (FormFieldState<String> state) {
+                    return InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'Choose Provider *',
+                        prefixIcon: const Icon(Icons.account_balance),
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        errorText: state.hasError ? state.errorText : null,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedBank,
+                          isExpanded: true,
+                          hint: const Text('Select BDO, BPI, GoTyme, GCash, MariBank, Maya, or Others'),
+                          items: _presetBanks.map((bank) {
+                            return DropdownMenuItem<String>(
+                              value: bank,
+                              child: Text(
+                                bank == 'Other' ? 'Others (Type bank / e-wallet name)' : bank,
+                                style: TextStyle(
+                                  fontWeight: bank == 'Other' ? FontWeight.w600 : FontWeight.normal,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedBank = val;
+                              state.didChange(val);
+                              if (val != 'Other' && val != null) {
+                                _bankNameController.text = val;
+                              } else if (val == 'Other') {
+                                if (_presetBanks.contains(_bankNameController.text)) {
+                                  _bankNameController.clear();
+                                }
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (_selectedBank == 'Other') ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _bankNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Type Bank / E-Wallet Name *',
+                      hintText: 'e.g. UnionBank, SeaBank, LandBank, GrabPay, Coins.ph',
+                      prefixIcon: Icon(Icons.edit_outlined),
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Please enter the bank or e-wallet name' : null,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 16),
 
