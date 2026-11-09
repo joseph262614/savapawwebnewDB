@@ -492,6 +492,7 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
   }
 
   Widget _buildChatThreadPane(User? currentUser, {bool isCompact = false}) {
+    final otherUid = (_selectedChatData?['otherUid'] ?? '').toString();
     final otherName = (_selectedChatData?['otherName'] ?? 'Adopter').toString();
     final petName = (_selectedChatData?['petName'] ?? 'Shelter Pet').toString();
     final petImage = (_selectedChatData?['petImage'] ?? '').toString();
@@ -530,30 +531,74 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            otherName,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF2D3142)),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'Adopter',
-                              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.blue.shade700),
-                            ),
-                          ),
-                        ],
+                      StreamBuilder<DatabaseEvent>(
+                        stream: FirebaseDatabase.instance.ref().child('users').child(otherUid).onValue,
+                        builder: (context, userSnap) {
+                          String roleLabel = 'Adopter';
+                          Color badgeBg = Colors.blue.shade50;
+                          Color badgeColor = Colors.blue.shade700;
+
+                          if (userSnap.hasData && userSnap.data?.snapshot.value is Map) {
+                            final uData = Map<String, dynamic>.from(userSnap.data!.snapshot.value as Map);
+                            final role = (uData['role'] ?? '').toString().toLowerCase();
+                            final bool isUserAdmin = uData['isAdmin'] == true || role == 'admin';
+                            if (isUserAdmin) {
+                              roleLabel = 'Staff / Admin';
+                              badgeBg = Colors.purple.shade50;
+                              badgeColor = Colors.purple.shade700;
+                            } else if (role == 'foster' || role == 'partner' || role == 'rescue partner') {
+                              roleLabel = 'Foster';
+                              badgeBg = Colors.teal.shade50;
+                              badgeColor = Colors.teal.shade700;
+                            } else if (role == 'volunteer') {
+                              roleLabel = 'Volunteer';
+                              badgeBg = Colors.orange.shade50;
+                              badgeColor = Colors.orange.shade800;
+                            }
+                          }
+
+                          return Row(
+                            children: [
+                              Text(
+                                otherName,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF2D3142)),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: badgeBg,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  roleLabel,
+                                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: badgeColor),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        'Inquiring about: $petName',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      StreamBuilder<DatabaseEvent>(
+                        stream: FirebaseDatabase.instance.ref().child('users').child(otherUid).onValue,
+                        builder: (context, userSnap) {
+                          String sub = 'Inquiring about: $petName';
+                          if (userSnap.hasData && userSnap.data?.snapshot.value is Map) {
+                            final uData = Map<String, dynamic>.from(userSnap.data!.snapshot.value as Map);
+                            final role = (uData['role'] ?? '').toString().toLowerCase();
+                            final bool isUserAdmin = uData['isAdmin'] == true || role == 'admin';
+                            if (isUserAdmin) {
+                              sub = 'Shelter Admin • Chatting about: $petName';
+                            } else if (role == 'foster' || role == 'partner' || role == 'rescue partner') {
+                              sub = 'Foster for $petName';
+                            }
+                          }
+                          return Text(
+                            sub,
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -854,6 +899,12 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
     required String otherName,
     required String otherUid,
   }) {
+    final String inqAdopterUid = (inquiryData['adopterUid'] ?? '').toString();
+    final String inqAdopterName = (inquiryData['adopterName'] ?? '').toString();
+    final String inqFosterId = (inquiryData['fosterId'] ?? '').toString();
+    final bool isChattingWithFoster = inqFosterId.isNotEmpty && inqFosterId == otherUid;
+    final String displayAdopterName = inqAdopterName.isNotEmpty ? inqAdopterName : (isChattingWithFoster ? 'Applicant' : otherName);
+
     // 1. Cancelled State
     if (status == 'cancelled') {
       final reason = inquiryData['cancellationReason']?.toString() ?? 'Adoption was cancelled.';
@@ -900,24 +951,36 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                     style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
                   ),
                   Text(
-                    '$otherName has submitted an inquiry to adopt $petName. Mark as approved to initiate the agreement process.',
+                    isChattingWithFoster
+                        ? 'Chatting with Foster $otherName. Applicant $displayAdopterName is awaiting approval for $petName.'
+                        : '$displayAdopterName has submitted an inquiry to adopt $petName. Mark as approved to initiate the agreement process.',
                     style: TextStyle(fontSize: 11.5, color: Colors.amber.shade900.withValues(alpha: 0.85)),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 12),
-            ElevatedButton.icon(
-              onPressed: () => _handleApproveAdopter(inquiryId, petId, petName, otherName, otherUid),
-              icon: const Icon(Icons.check_circle_outline, size: 15),
-              label: const Text('Approve Adopter', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E7D32),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            if (!isChattingWithFoster || inqAdopterUid.isNotEmpty)
+              ElevatedButton.icon(
+                onPressed: () => _handleApproveAdopter(
+                  inquiryId,
+                  petId,
+                  petName,
+                  displayAdopterName,
+                  inqAdopterUid.isNotEmpty ? inqAdopterUid : otherUid,
+                ),
+                icon: const Icon(Icons.check_circle_outline, size: 15),
+                label: Text(
+                  isChattingWithFoster ? 'Approve $displayAdopterName' : 'Approve Adopter',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
               ),
-            ),
           ],
         ),
       );
@@ -948,7 +1011,7 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                     style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
                   ),
                   Text(
-                    '$otherName is marked as the official adopter! They have been prompted to agree to Adoption Terms & Conditions in their app to generate the 5-character Adoption Pass.',
+                    '$displayAdopterName is marked as the official adopter! They have been prompted to agree to Adoption Terms & Conditions in their app to generate the 5-character Adoption Pass.',
                     style: TextStyle(fontSize: 11.5, color: Colors.green.shade900),
                   ),
                 ],
@@ -1150,6 +1213,26 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
 
     try {
       final db = FirebaseDatabase.instance.ref();
+
+      // Enforce: Administrators manage shelter operations and cannot adopt pets
+      final userSnap = await db.child('users').child(adopterUid).get();
+      if (userSnap.exists && userSnap.value is Map) {
+        final uMap = Map<String, dynamic>.from(userSnap.value as Map);
+        final role = (uMap['role'] ?? '').toString().toLowerCase();
+        final bool isTargetAdmin = uMap['isAdmin'] == true || role == 'admin';
+        if (isTargetAdmin) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Cannot approve: Administrators manage shelter operations and cannot adopt pets.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       await db.child('adoption_inquiries').child(inquiryId).update({
         'status': 'approved',
         'approvedAt': ServerValue.timestamp,
