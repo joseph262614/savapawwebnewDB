@@ -590,11 +590,15 @@ class _AdminScreenState extends State<AdminScreen> {
       ),
       child: Row(
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 16),
           // Messages quick chat button
           StreamBuilder<DatabaseEvent>(
             stream: FirebaseDatabase.instance

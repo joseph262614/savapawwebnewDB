@@ -151,6 +151,7 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
     final content = LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth > 900;
+        final isCompact = constraints.maxWidth < 650;
 
         return Column(
           children: [
@@ -197,9 +198,12 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
               child: Row(
                 children: [
                   // Left Pane: Conversation List
-                  SizedBox(
-                    width: isDesktop ? 360 : 300,
-                    child: Container(
+                  if (!isCompact || _selectedChatId == null)
+                    Expanded(
+                      flex: isCompact ? 1 : 0,
+                      child: SizedBox(
+                        width: isCompact ? double.infinity : (isDesktop ? 360 : 300),
+                        child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border(right: BorderSide(color: Colors.grey.shade200)),
@@ -417,30 +421,32 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                       ),
                     ),
                   ),
+                ),
 
                   // Right Pane: Active Chat Conversation
-                  Expanded(
-                    child: _selectedChatId == null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.forum_outlined, size: 64, color: Colors.grey.shade300),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Select an adopter conversation',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2D3142)),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Chat live with prospective adopters to review requirements and schedule handovers',
-                                  style: TextStyle(fontSize: 12.5, color: Colors.grey.shade500),
-                                ),
-                              ],
-                            ),
-                          )
-                        : _buildChatThreadPane(user),
-                  ),
+                  if (!isCompact || _selectedChatId != null)
+                    Expanded(
+                      child: _selectedChatId == null
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.forum_outlined, size: 64, color: Colors.grey.shade300),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Select an adopter conversation',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2D3142)),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Chat live with prospective adopters to review requirements and schedule handovers',
+                                    style: TextStyle(fontSize: 12.5, color: Colors.grey.shade500),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : _buildChatThreadPane(user, isCompact: isCompact),
+                    ),
                 ],
               ),
             ),
@@ -459,7 +465,7 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
     );
   }
 
-  Widget _buildChatThreadPane(User? currentUser) {
+  Widget _buildChatThreadPane(User? currentUser, {bool isCompact = false}) {
     final otherName = (_selectedChatData?['otherName'] ?? 'Adopter').toString();
     final petName = (_selectedChatData?['petName'] ?? 'Shelter Pet').toString();
     final petImage = (_selectedChatData?['petImage'] ?? '').toString();
@@ -477,6 +483,14 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
             ),
             child: Row(
               children: [
+                if (isCompact) ...[
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Color(0xFF2D3142)),
+                    tooltip: 'Back to conversations',
+                    onPressed: () => setState(() => _selectedChatId = null),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: SizedBox(
