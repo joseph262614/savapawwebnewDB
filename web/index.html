@@ -45,8 +45,8 @@
             await caches.delete(keys[j]);
           }
         }
-        if (hadController && !sessionStorage.getItem('sw_purged_v16')) {
-          sessionStorage.setItem('sw_purged_v16', '1');
+        if (hadController && !sessionStorage.getItem('sw_purged_v17')) {
+          sessionStorage.setItem('sw_purged_v17', '1');
           window.location.reload();
           return;
         }
