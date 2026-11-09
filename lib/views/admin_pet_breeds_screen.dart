@@ -87,7 +87,6 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
           final totalPets = allPets.length;
           final adoptedPets = allPets.where((p) => p.isAdopted).length;
           final availablePets = totalPets - adoptedPets;
-          final adoptionRate = totalPets > 0 ? ((adoptedPets / totalPets) * 100).toStringAsFixed(1) : '0';
 
           final dogsList = allPets.where((p) => p.category.toLowerCase() == 'dogs').toList();
           final catsList = allPets.where((p) => p.category.toLowerCase() == 'cats').toList();
@@ -108,23 +107,6 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
                 _buildHeader(isDesktop, allPets, totalPets, adoptedPets, availablePets, dogBreeds.length, catBreeds.length),
 
                 const SizedBox(height: 18),
-
-                // KPI Stat Cards Grid
-                _buildKpiSection(
-                  isDesktop: isDesktop,
-                  totalPets: totalPets,
-                  adoptedPets: adoptedPets,
-                  availablePets: availablePets,
-                  adoptionRate: adoptionRate,
-                  totalDogs: dogsList.length,
-                  adoptedDogs: dogsList.where((p) => p.isAdopted).length,
-                  dogBreedCount: dogBreeds.length,
-                  totalCats: catsList.length,
-                  adoptedCats: catsList.where((p) => p.isAdopted).length,
-                  catBreedCount: catBreeds.length,
-                ),
-
-                const SizedBox(height: 22),
 
                 // Controls: Search, Status Filter, Sort By
                 _buildFilterControls(isDesktop),
@@ -305,87 +287,6 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
           ),
         ],
       ],
-    );
-  }
-
-  Widget _buildKpiSection({
-    required bool isDesktop,
-    required int totalPets,
-    required int adoptedPets,
-    required int availablePets,
-    required String adoptionRate,
-    required int totalDogs,
-    required int adoptedDogs,
-    required int dogBreedCount,
-    required int totalCats,
-    required int adoptedCats,
-    required int catBreedCount,
-  }) {
-    final cards = [
-      _KpiCard(
-        title: 'OVERALL ADOPTED',
-        value: '$adoptedPets',
-        subtitle: '$adoptionRate% overall adoption success',
-        badge: 'Top Metric',
-        icon: Icons.verified_user_rounded,
-        accentColor: const Color(0xFF2E7D32),
-        bgColor: const Color(0xFFE8F5E9),
-      ),
-      _KpiCard(
-        title: 'AVAILABLE IN SHELTER',
-        value: '$availablePets',
-        subtitle: 'Looking for loving homes',
-        badge: 'Pending',
-        icon: Icons.home_outlined,
-        accentColor: const Color(0xFFE65100),
-        bgColor: const Color(0xFFFFF3E0),
-      ),
-      _KpiCard(
-        title: 'DOGS & BREEDS',
-        value: '$totalDogs Dogs',
-        subtitle: '$dogBreedCount unique breeds • $adoptedDogs adopted',
-        badge: 'Canines',
-        icon: Icons.pets,
-        accentColor: const Color(0xFF1565C0),
-        bgColor: const Color(0xFFE3F2FD),
-      ),
-      _KpiCard(
-        title: 'CATS & BREEDS',
-        value: '$totalCats Cats',
-        subtitle: '$catBreedCount unique breeds • $adoptedCats adopted',
-        badge: 'Felines',
-        icon: Icons.cruelty_free,
-        accentColor: const Color(0xFF7B1FA2),
-        bgColor: const Color(0xFFF3E5F5),
-      ),
-    ];
-
-    if (isDesktop) {
-      return Row(
-        children: cards
-            .map((c) => Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                    child: c,
-                  ),
-                ))
-            .toList(),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: cards
-              .map((c) => SizedBox(
-                    width: (constraints.maxWidth - 10) / 2,
-                    child: c,
-                  ))
-              .toList(),
-        );
-      },
     );
   }
 
@@ -1724,97 +1625,6 @@ class _BreedGroup {
     required this.availableCount,
     required this.pets,
   });
-}
-
-// ─── KPI Card Widget ─────────────────────────────────────────────────────────
-
-class _KpiCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String subtitle;
-  final String badge;
-  final IconData icon;
-  final Color accentColor;
-  final Color bgColor;
-
-  const _KpiCard({
-    required this.title,
-    required this.value,
-    required this.subtitle,
-    required this.badge,
-    required this.icon,
-    required this.accentColor,
-    required this.bgColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: accentColor, size: 20),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  badge,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: accentColor),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.8,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.black87),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ─── Summary Report Dialog (Day, Week, Month, All-Time) ─────────────────────
