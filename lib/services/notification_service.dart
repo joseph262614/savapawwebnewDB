@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'platform_notification.dart';
 
@@ -10,9 +11,15 @@ class NotificationService extends ChangeNotifier {
 
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
   StreamSubscription<DatabaseEvent>? _announcementsSubscription;
+  StreamSubscription<DatabaseEvent>? _readSubscription;
+  StreamSubscription<User?>? _authSubscription;
 
   List<Map<String, dynamic>> _announcements = [];
   List<Map<String, dynamic>> get announcements => _announcements;
+
+  final Set<String> _readAnnouncementIds = <String>{};
+  int _unreadCount = 0;
+  int get unreadCount => _unreadCount;
 
   bool _initialized = false;
   bool get initialized => _initialized;
@@ -25,6 +32,35 @@ class NotificationService extends ChangeNotifier {
     PlatformNotification.requestPermission();
 
     _listenToAnnouncements();
+
+    _authSubscription?.cancel();
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      _bindUserReadListener(user?.uid);
+    });
+    _bindUserReadListener(FirebaseAuth.instance.currentUser?.uid);
+  }
+
+  void _bindUserReadListener(String? uid) {
+    _readSubscription?.cancel();
+    _readSubscription = null;
+    if (uid == null || uid.isEmpty) {
+      _recalculateUnreadCount();
+      return;
+    }
+
+    _readSubscription = _dbRef.child('users/$uid/read_announcements').onValue.listen((event) {
+      if (event.snapshot.exists && event.snapshot.value is Map) {
+        final map = event.snapshot.value as Map;
+        map.forEach((k, v) {
+          if (v == true) {
+            _readAnnouncementIds.add(k.toString());
+          }
+        });
+      }
+      _recalculateUnreadCount();
+    }, onError: (err) {
+      debugPrint("Read announcements stream error: $err");
+    });
   }
 
   void _listenToAnnouncements() {
@@ -53,10 +89,52 @@ class NotificationService extends ChangeNotifier {
       });
 
       _announcements = fetched;
-      notifyListeners();
+      _recalculateUnreadCount();
     }, onError: (err) {
       debugPrint("Admin announcements stream error: $err");
     });
+  }
+
+  void _recalculateUnreadCount() {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    int unread = 0;
+    for (final a in _announcements) {
+      final id = a['id']?.toString() ?? '';
+      final authorUid = a['authorUid']?.toString();
+      if (authorUid != null && currentUid != null && authorUid == currentUid) {
+        _readAnnouncementIds.add(id);
+        continue;
+      }
+      if (id.isNotEmpty && !_readAnnouncementIds.contains(id)) {
+        unread++;
+      }
+    }
+    _unreadCount = unread;
+    notifyListeners();
+  }
+
+  Future<void> markAllAsRead() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final updates = <String, dynamic>{};
+    for (final a in _announcements) {
+      final id = a['id']?.toString() ?? '';
+      if (id.isNotEmpty) {
+        _readAnnouncementIds.add(id);
+        if (uid != null && uid.isNotEmpty) {
+          updates['users/$uid/read_announcements/$id'] = true;
+        }
+      }
+    }
+    _unreadCount = 0;
+    notifyListeners();
+
+    if (updates.isNotEmpty) {
+      try {
+        await _dbRef.update(updates);
+      } catch (e) {
+        debugPrint("Error writing read announcements to Firebase: $e");
+      }
+    }
   }
 
   /// Broadcasts an announcement to all users
@@ -94,6 +172,8 @@ class NotificationService extends ChangeNotifier {
   @override
   void dispose() {
     _announcementsSubscription?.cancel();
+    _readSubscription?.cancel();
+    _authSubscription?.cancel();
     super.dispose();
   }
 }

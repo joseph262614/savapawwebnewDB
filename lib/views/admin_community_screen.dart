@@ -37,6 +37,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen>
       if (mounted) setState(() {});
     });
     _notificationService.init();
+    _notificationService.markAllAsRead();
     _listenToPosts();
   }
 

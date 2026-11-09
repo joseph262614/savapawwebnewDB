@@ -15,6 +15,7 @@ import 'admin_add_pet_screen.dart';
 import 'admin_pet_listings_screen.dart';
 import 'admin_adopter_messages_screen.dart';
 import '../widgets/app_optimized_image.dart';
+import '../services/notification_service.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -48,11 +49,15 @@ class _AdminScreenState extends State<AdminScreen> {
       _selectedNavIndex = index;
       _dismissedNavIndices.add(index);
     });
+    if (index == 9) {
+      NotificationService().markAllAsRead();
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    NotificationService().init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _verifyAdminAccess();
     });
@@ -360,13 +365,10 @@ class _AdminScreenState extends State<AdminScreen> {
             label: 'Donation & Bank Setup',
             isExpanded: isDesktop,
           ),
-          StreamBuilder<DatabaseEvent>(
-            stream: FirebaseDatabase.instance.ref().child('announcements').onValue,
-            builder: (context, snap) {
-              int alertCount = 0;
-              if (snap.hasData && snap.data?.snapshot.value is Map) {
-                alertCount = (snap.data!.snapshot.value as Map).length;
-              }
+          AnimatedBuilder(
+            animation: NotificationService(),
+            builder: (context, _) {
+              final alertCount = NotificationService().unreadCount;
               return _buildNavItem(
                 index: 9,
                 icon: Icons.campaign_outlined,
@@ -597,79 +599,6 @@ class _AdminScreenState extends State<AdminScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
-          const SizedBox(width: 16),
-          // Messages quick chat button
-          StreamBuilder<DatabaseEvent>(
-            stream: FirebaseDatabase.instance
-                .ref()
-                .child('user_chats/${authViewModel.user?.uid ?? 'unknown'}')
-                .onValue,
-            builder: (context, snap) {
-              int unreadChats = 0;
-              if (snap.hasData && snap.data?.snapshot.value is Map) {
-                final map = snap.data!.snapshot.value as Map;
-                for (final val in map.values) {
-                  if (val is Map && val['unread'] == true) {
-                    unreadChats++;
-                  }
-                }
-              }
-              return Tooltip(
-                message: 'Messages',
-                child: InkWell(
-                  onTap: () => _selectNav(10),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _selectedNavIndex == 10
-                          ? AppTheme.primaryOrange.withValues(alpha: 0.12)
-                          : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: _selectedNavIndex == 10
-                            ? AppTheme.primaryOrange.withValues(alpha: 0.4)
-                            : Colors.transparent,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _selectedNavIndex == 10 ? Icons.chat_bubble : Icons.chat_bubble_outline,
-                          size: 18,
-                          color: _selectedNavIndex == 10 ? AppTheme.primaryOrange : Colors.black87,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Messages',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: _selectedNavIndex == 10 ? AppTheme.primaryOrange : Colors.black87,
-                          ),
-                        ),
-                        if (unreadChats > 0 && !_dismissedNavIndices.contains(10)) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: const BoxDecoration(
-                              color: AppTheme.primaryOrange,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '$unreadChats',
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
           ),
           const SizedBox(width: 16),
           // Admin info
