@@ -308,23 +308,12 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
             ),
           ],
-          StreamBuilder<DatabaseEvent>(
-            stream: FirebaseDatabase.instance.ref().child('adoptionCenter').onValue,
-            builder: (context, snap) {
-              int availableCount = 0;
-              if (snap.hasData && snap.data?.snapshot.value is Map) {
-                final map = snap.data!.snapshot.value as Map;
-                availableCount = map.values.where((v) => v is Map && v['isAdopted'] != true).length;
-              }
-              return _buildNavItem(
-                index: 1,
-                icon: Icons.inventory_2_outlined,
-                activeIcon: Icons.inventory_2,
-                label: 'Shelter Pet Listings',
-                isExpanded: isDesktop,
-                badgeCount: availableCount,
-              );
-            },
+          _buildNavItem(
+            index: 1,
+            icon: Icons.inventory_2_outlined,
+            activeIcon: Icons.inventory_2,
+            label: 'Shelter Pet Listings',
+            isExpanded: isDesktop,
           ),
           StreamBuilder<DatabaseEvent>(
             stream: FirebaseDatabase.instance.ref().child('verificationRequests').orderByChild('status').equalTo('pending').onValue,

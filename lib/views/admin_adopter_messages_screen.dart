@@ -72,12 +72,37 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
     // Mark as read in user_chats
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      FirebaseDatabase.instance
-          .ref()
-          .child('user_chats')
+      final db = FirebaseDatabase.instance.ref();
+      db.child('user_chats')
           .child(user.uid)
           .child(chatId)
-          .update({'unread': false});
+          .update({'unread': false}).catchError((_) {});
+
+      final otherUid = (data['otherUid'] ?? '').toString();
+      final petId = (data['petId'] ?? '').toString();
+
+      db.child('system_messages')
+          .child(user.uid)
+          .get()
+          .then((snap) {
+        if (snap.exists && snap.value is Map) {
+          final msgs = snap.value as Map;
+          msgs.forEach((k, v) {
+            if (v is Map) {
+              final replyToUid = v['replyToUid']?.toString();
+              final pId = v['petId']?.toString();
+              if (replyToUid == otherUid || (petId.isNotEmpty && pId == petId)) {
+                if (v['read'] != true) {
+                  db.child('system_messages')
+                      .child(user.uid)
+                      .child(k.toString())
+                      .update({'read': true}).catchError((_) {});
+                }
+              }
+            }
+          });
+        }
+      }).catchError((_) {});
     }
 
     _scrollToBottom();
