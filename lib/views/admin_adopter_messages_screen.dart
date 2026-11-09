@@ -337,7 +337,9 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                                           final chatId = (c['chatId'] ?? '').toString();
                                           final isSelected = chatId == _selectedChatId;
                                           final otherName = (c['otherName'] ?? 'Adopter').toString();
+                                          final otherUid = (c['otherUid'] ?? '').toString();
                                           final petName = (c['petName'] ?? '').toString();
+                                          final petId = (c['petId'] ?? '').toString();
                                           final petImage = (c['petImage'] ?? '').toString();
                                           final lastMsg = (c['lastMessage'] ?? '').toString();
                                           final timeStr = _formatTimestamp(c['lastTimestamp']);
@@ -434,6 +436,19 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                                                       ),
                                                     ),
                                                   ],
+                                                  const SizedBox(width: 4),
+                                                  IconButton(
+                                                    icon: const Icon(Icons.delete_outline, size: 18, color: Colors.grey),
+                                                    hoverColor: Colors.red.withValues(alpha: 0.1),
+                                                    tooltip: 'Delete conversation',
+                                                    splashRadius: 18,
+                                                    onPressed: () => _confirmDeleteConversation(
+                                                      chatId: chatId,
+                                                      displayName: petName.isNotEmpty ? petName : otherName,
+                                                      otherUid: otherUid,
+                                                      petId: petId,
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
                                             ),
@@ -601,6 +616,18 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                         },
                       ),
                     ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+                  tooltip: 'Delete Conversation',
+                  hoverColor: Colors.red.withValues(alpha: 0.1),
+                  splashRadius: 20,
+                  onPressed: () => _confirmDeleteConversation(
+                    chatId: _selectedChatId!,
+                    displayName: petName.isNotEmpty && petName != 'Shelter Pet' ? petName : otherName,
+                    otherUid: otherUid,
+                    petId: (_selectedChatData?['petId'] ?? '').toString(),
                   ),
                 ),
               ],
@@ -1199,6 +1226,101 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
     }
 
     return const SizedBox.shrink();
+  }
+
+  Future<void> _confirmDeleteConversation({
+    required String chatId,
+    required String displayName,
+    required String otherUid,
+    required String petId,
+  }) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.delete_forever, color: Colors.red, size: 24),
+            SizedBox(width: 8),
+            Text('Delete Conversation?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete the conversation for "$displayName"? This will remove it from your messages list.',
+          style: const TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final db = FirebaseDatabase.instance.ref();
+      // 1. Remove from user_chats
+      await db.child('user_chats').child(user.uid).child(chatId).remove();
+
+      // 2. Remove matching inquiries or notices from system_messages
+      try {
+        final sysSnap = await db.child('system_messages').child(user.uid).get();
+        if (sysSnap.exists && sysSnap.value is Map) {
+          final map = sysSnap.value as Map;
+          for (final entry in map.entries) {
+            if (entry.value is Map) {
+              final val = entry.value as Map;
+              final replyToUid = val['replyToUid']?.toString();
+              final pId = val['petId']?.toString();
+              final cId = val['chatId']?.toString();
+              if (cId == chatId || (replyToUid == otherUid && (petId.isEmpty || pId == petId))) {
+                await db.child('system_messages').child(user.uid).child(entry.key.toString()).remove();
+              }
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 3. Reset selected chat if it was deleted
+      if (_selectedChatId == chatId) {
+        setState(() {
+          _selectedChatId = null;
+          _selectedChatData = null;
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Conversation deleted'),
+            backgroundColor: Colors.black87,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete conversation: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _handleApproveAdopter(
