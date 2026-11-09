@@ -396,7 +396,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 index: 10,
                 icon: Icons.chat_bubble_outline,
                 activeIcon: Icons.chat_bubble,
-                label: 'Adopter Messages',
+                label: 'Messages',
                 isExpanded: isDesktop,
                 badgeCount: unreadChats,
               );
@@ -571,7 +571,7 @@ class _AdminScreenState extends State<AdminScreen> {
       'Reported Community Posts',
       'Donation & Bank Setup',
       'Community & Announcements',
-      'Adopter Messages & Inquiries',
+      'Messages',
     ];
     final title = _selectedNavIndex < titles.length ? titles[_selectedNavIndex] : 'Admin Portal';
 
@@ -595,7 +595,7 @@ class _AdminScreenState extends State<AdminScreen> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const Spacer(),
-          // Adopter inquiries quick chat button
+          // Messages quick chat button
           StreamBuilder<DatabaseEvent>(
             stream: FirebaseDatabase.instance
                 .ref()
@@ -612,7 +612,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 }
               }
               return Tooltip(
-                message: 'Adopter Messages & Inquiries',
+                message: 'Messages',
                 child: InkWell(
                   onTap: () => _selectNav(10),
                   borderRadius: BorderRadius.circular(10),
@@ -639,7 +639,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Adopter Messages',
+                          'Messages',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -774,7 +774,7 @@ class _AdminScreenState extends State<AdminScreen> {
           NavigationDestination(
             icon: Icon(Icons.chat_bubble_outline),
             selectedIcon: Icon(Icons.chat_bubble),
-            label: 'Adopter Messages',
+            label: 'Messages',
           ),
         ],
       ),
@@ -1018,7 +1018,7 @@ class _DashboardContent extends StatelessWidget {
                     width: isDesktop ? cardWidth : double.infinity,
                     child: _AdminActionCard(
                       icon: Icons.chat_bubble_outline,
-                      title: 'Adopter Messages & Inquiries',
+                      title: 'Messages',
                       subtitle: 'Communicate 1-on-1 with potential adopters inquiring about shelter pets',
                       color: const Color(0xFF00ACC1),
                       onTap: onNavigateToMessages,

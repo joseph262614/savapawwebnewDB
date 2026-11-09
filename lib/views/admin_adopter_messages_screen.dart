@@ -177,7 +177,7 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Adopter Messages & Inquiries',
+                          'Messages',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D3142)),
                         ),
                         SizedBox(height: 2),
