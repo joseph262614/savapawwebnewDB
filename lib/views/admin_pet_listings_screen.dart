@@ -30,6 +30,10 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
   @override
   void initState() {
     super.initState();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null && uid.isNotEmpty) {
+      _db.ref().child('users/$uid/dismissed_nav_indices/1').set(true).catchError((_) {});
+    }
     _usersSubscription = _db.ref().child('users').onValue.listen((event) {
       if (mounted && event.snapshot.exists && event.snapshot.value is Map) {
         final usersMap = event.snapshot.value as Map;

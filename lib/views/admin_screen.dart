@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
@@ -43,12 +44,23 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen> {
   int _selectedNavIndex = 0;
   final Set<int> _dismissedNavIndices = <int>{};
+  StreamSubscription<DatabaseEvent>? _dismissedNavSubscription;
 
   void _selectNav(int index) {
     setState(() {
       _selectedNavIndex = index;
       _dismissedNavIndices.add(index);
     });
+
+    final uid = Provider.of<AuthViewModel>(context, listen: false).user?.uid;
+    if (uid != null && uid.isNotEmpty) {
+      FirebaseDatabase.instance
+          .ref()
+          .child('users/$uid/dismissed_nav_indices/$index')
+          .set(true)
+          .catchError((_) {});
+    }
+
     if (index == 9) {
       NotificationService().markAllAsRead();
     }
@@ -58,9 +70,44 @@ class _AdminScreenState extends State<AdminScreen> {
   void initState() {
     super.initState();
     NotificationService().init();
+    _listenToDismissedNavIndices();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _verifyAdminAccess();
     });
+  }
+
+  void _listenToDismissedNavIndices() {
+    final uid = Provider.of<AuthViewModel>(context, listen: false).user?.uid;
+    if (uid == null || uid.isEmpty) return;
+
+    _dismissedNavSubscription?.cancel();
+    _dismissedNavSubscription = FirebaseDatabase.instance
+        .ref()
+        .child('users/$uid/dismissed_nav_indices')
+        .onValue
+        .listen((event) {
+      if (event.snapshot.exists && event.snapshot.value is Map) {
+        final map = event.snapshot.value as Map;
+        if (mounted) {
+          setState(() {
+            map.forEach((k, v) {
+              final idx = int.tryParse(k.toString());
+              if (idx != null && v == true) {
+                _dismissedNavIndices.add(idx);
+              }
+            });
+          });
+        }
+      }
+    }, onError: (err) {
+      debugPrint("Dismissed nav indices stream error: $err");
+    });
+  }
+
+  @override
+  void dispose() {
+    _dismissedNavSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _verifyAdminAccess() async {
@@ -81,6 +128,8 @@ class _AdminScreenState extends State<AdminScreen> {
       if (mounted) {
         _redirectToLogin('Access denied. This portal is for admin users only.');
       }
+    } else {
+      _listenToDismissedNavIndices();
     }
   }
 
