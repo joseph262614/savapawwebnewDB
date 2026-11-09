@@ -1605,10 +1605,15 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
       final lng = (report['lng'] as num?)?.toDouble() ?? (report['longitude'] as num?)?.toDouble();
       if (lat == null || lng == null) continue;
 
+      final status = (report['status'] ?? 'Open').toString().toLowerCase();
+      final isRescued = status == 'rescued' || status == 'closed';
+
+      // Rescued/Closed pets disappear from active rescue incident map unless explicitly filtered by 'rescued'
+      if (isRescued && _selectedFilter != 'rescued') continue;
+
       final point = LatLng(lat, lng);
       centerPos = point;
-      final status = (report['status'] ?? 'Open').toString();
-      final color = _getStatusColor(status);
+      final color = _getStatusColor(report['status'] ?? 'Open');
       final isMissing = (report['isMissing'] == true || (report['reportType'] ?? '').toString().toLowerCase() == 'missing');
 
       markers.add(
