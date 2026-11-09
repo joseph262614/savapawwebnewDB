@@ -13,6 +13,7 @@ import 'admin_support_chat_screen.dart';
 import 'admin_community_screen.dart';
 import 'admin_add_pet_screen.dart';
 import 'admin_pet_listings_screen.dart';
+import 'admin_adopter_messages_screen.dart';
 import '../widgets/app_optimized_image.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -119,6 +120,7 @@ class _AdminScreenState extends State<AdminScreen> {
         onNavigateToReportedPosts: () => _selectNav(7),
         onNavigateToDonation: () => _selectNav(8),
         onNavigateToCommunity: () => _selectNav(9),
+        onNavigateToMessages: () => _selectNav(10),
       ),
       const AdminPetListingsScreen(embeddedMode: true),
       const AdminVerificationRequestsScreen(embeddedMode: true),
@@ -129,6 +131,7 @@ class _AdminScreenState extends State<AdminScreen> {
       const AdminReportedPostsScreen(embeddedMode: true),
       const AdminDonationScreen(embeddedMode: true),
       const AdminCommunityScreen(embeddedMode: true),
+      const AdminAdopterMessagesScreen(embeddedMode: true),
     ];
 
     if (!isDesktop && !isTablet) {
@@ -374,6 +377,31 @@ class _AdminScreenState extends State<AdminScreen> {
               );
             },
           ),
+          StreamBuilder<DatabaseEvent>(
+            stream: FirebaseDatabase.instance
+                .ref()
+                .child('user_chats/${authViewModel.user?.uid ?? 'unknown'}')
+                .onValue,
+            builder: (context, snap) {
+              int unreadChats = 0;
+              if (snap.hasData && snap.data?.snapshot.value is Map) {
+                final map = snap.data!.snapshot.value as Map;
+                for (final val in map.values) {
+                  if (val is Map && val['unread'] == true) {
+                    unreadChats++;
+                  }
+                }
+              }
+              return _buildNavItem(
+                index: 10,
+                icon: Icons.chat_bubble_outline,
+                activeIcon: Icons.chat_bubble,
+                label: 'Adopter Messages',
+                isExpanded: isDesktop,
+                badgeCount: unreadChats,
+              );
+            },
+          ),
 
           const Spacer(),
 
@@ -543,6 +571,7 @@ class _AdminScreenState extends State<AdminScreen> {
       'Reported Community Posts',
       'Donation & Bank Setup',
       'Community & Announcements',
+      'Adopter Messages & Inquiries',
     ];
     final title = _selectedNavIndex < titles.length ? titles[_selectedNavIndex] : 'Admin Portal';
 
@@ -566,6 +595,79 @@ class _AdminScreenState extends State<AdminScreen> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const Spacer(),
+          // Adopter inquiries quick chat button
+          StreamBuilder<DatabaseEvent>(
+            stream: FirebaseDatabase.instance
+                .ref()
+                .child('user_chats/${authViewModel.user?.uid ?? 'unknown'}')
+                .onValue,
+            builder: (context, snap) {
+              int unreadChats = 0;
+              if (snap.hasData && snap.data?.snapshot.value is Map) {
+                final map = snap.data!.snapshot.value as Map;
+                for (final val in map.values) {
+                  if (val is Map && val['unread'] == true) {
+                    unreadChats++;
+                  }
+                }
+              }
+              return Tooltip(
+                message: 'Adopter Messages & Inquiries',
+                child: InkWell(
+                  onTap: () => _selectNav(10),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _selectedNavIndex == 10
+                          ? AppTheme.primaryOrange.withValues(alpha: 0.12)
+                          : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _selectedNavIndex == 10
+                            ? AppTheme.primaryOrange.withValues(alpha: 0.4)
+                            : Colors.transparent,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _selectedNavIndex == 10 ? Icons.chat_bubble : Icons.chat_bubble_outline,
+                          size: 18,
+                          color: _selectedNavIndex == 10 ? AppTheme.primaryOrange : Colors.black87,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Adopter Messages',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _selectedNavIndex == 10 ? AppTheme.primaryOrange : Colors.black87,
+                          ),
+                        ),
+                        if (unreadChats > 0 && !_dismissedNavIndices.contains(10)) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: const BoxDecoration(
+                              color: AppTheme.primaryOrange,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '$unreadChats',
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 16),
           // Admin info
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -614,9 +716,9 @@ class _AdminScreenState extends State<AdminScreen> {
       ),
       body: pages[_selectedNavIndex.clamp(0, pages.length - 1)],
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedNavIndex.clamp(0, 9),
+        selectedIndex: _selectedNavIndex.clamp(0, 10),
         onDestinationSelected: (index) {
-          if (index <= 9) _selectNav(index);
+          if (index <= 10) _selectNav(index);
         },
         destinations: const [
           NavigationDestination(
@@ -669,6 +771,11 @@ class _AdminScreenState extends State<AdminScreen> {
             selectedIcon: Icon(Icons.campaign),
             label: 'Community & Announcements',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat_bubble),
+            label: 'Adopter Messages',
+          ),
         ],
       ),
     );
@@ -687,6 +794,7 @@ class _DashboardContent extends StatelessWidget {
   final VoidCallback onNavigateToBreeds;
   final VoidCallback onNavigateToSupportChat;
   final VoidCallback onNavigateToCommunity;
+  final VoidCallback onNavigateToMessages;
   
   const _DashboardContent({
     required this.onNavigateToPetListings,
@@ -698,6 +806,7 @@ class _DashboardContent extends StatelessWidget {
     required this.onNavigateToBreeds,
     required this.onNavigateToSupportChat,
     required this.onNavigateToCommunity,
+    required this.onNavigateToMessages,
   });
 
   @override
@@ -801,7 +910,7 @@ class _DashboardContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Text(
-                  '9 Modules',
+                  '10 Modules',
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
                 ),
               ),
@@ -903,6 +1012,16 @@ class _DashboardContent extends StatelessWidget {
                       subtitle: 'Broadcast alerts to app & devices, create official posts & manage feed',
                       color: const Color(0xFF6A1B9A),
                       onTap: onNavigateToCommunity,
+                    ),
+                  ),
+                  SizedBox(
+                    width: isDesktop ? cardWidth : double.infinity,
+                    child: _AdminActionCard(
+                      icon: Icons.chat_bubble_outline,
+                      title: 'Adopter Messages & Inquiries',
+                      subtitle: 'Communicate 1-on-1 with potential adopters inquiring about shelter pets',
+                      color: const Color(0xFF00ACC1),
+                      onTap: onNavigateToMessages,
                     ),
                   ),
                 ],
