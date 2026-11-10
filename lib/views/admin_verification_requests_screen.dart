@@ -67,7 +67,7 @@ class AdminVerificationRequestsScreen extends StatelessWidget {
         }
 
         final requests = requestsMap.entries
-            .where((e) => (e.value as Map)['status'] == 'pending')
+            .where((e) => e.value is Map && (e.value as Map)['status'] == 'pending')
             .toList();
 
         if (requests.isEmpty) {
