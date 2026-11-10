@@ -678,6 +678,8 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                           title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                           landmark: address,
                           report: report,
+                          onViewDetails: (rep) => _showReportDetailsDialog(context, rep),
+                          onRespond: (rep) => _showStatusActionModal(context, rep),
                         );
                       },
                       icon: const Icon(Icons.map_rounded, size: 14, color: AppTheme.primaryOrange),
@@ -734,6 +736,8 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                                       title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                                       landmark: address,
                                       report: report,
+                                      onViewDetails: (rep) => _showReportDetailsDialog(context, rep),
+                                      onRespond: (rep) => _showStatusActionModal(context, rep),
                                     );
                                   },
                                   child: MouseRegion(
@@ -774,6 +778,8 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                               title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                               landmark: address,
                               report: report,
+                              onViewDetails: (rep) => _showReportDetailsDialog(context, rep),
+                              onRespond: (rep) => _showStatusActionModal(context, rep),
                             );
                           },
                           tooltip: 'Expand Map / Open Maps',
@@ -916,8 +922,13 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
           return tB.compareTo(tA);
         });
 
-        final missingCount = allReports.where((r) => (r['reportType'] == 'missing') || (r['isMissingPet'] == true)).length;
-        final strayCount = allReports.length - missingCount;
+        final missingCount = allReports.where((r) {
+          final isMiss = (r['reportType'] == 'missing') || (r['isMissingPet'] == true);
+          if (!isMiss) return false;
+          final st = (r['status'] ?? 'Open').toString().toLowerCase();
+          return st != 'rescued' && st != 'closed';
+        }).length;
+        final strayCount = allReports.length - allReports.where((r) => (r['reportType'] == 'missing') || (r['isMissingPet'] == true)).length;
         final openCount = allReports.where((r) => (r['status'] ?? 'Open').toString().toLowerCase() == 'open').length;
         final inProgressCount = allReports.where((r) => (r['status'] ?? '').toString().toLowerCase() == 'in progress').length;
         final rescuedCount = allReports.where((r) => (r['status'] ?? '').toString().toLowerCase() == 'rescued').length;
@@ -926,7 +937,16 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
         // Filter
         List<Map<String, dynamic>> filtered = allReports;
         if (_selectedTypeFilter == 'missing') {
-          filtered = filtered.where((r) => (r['reportType'] == 'missing') || (r['isMissingPet'] == true)).toList();
+          filtered = filtered.where((r) {
+            final isMiss = (r['reportType'] == 'missing') || (r['isMissingPet'] == true);
+            if (!isMiss) return false;
+            final st = (r['status'] ?? 'Open').toString().toLowerCase();
+            // Rescued/closed pets are no longer missing and should not appear in active missing pets unless explicitly filtered by 'rescued' or 'closed'
+            if (_selectedFilter != 'rescued' && _selectedFilter != 'closed') {
+              if (st == 'rescued' || st == 'closed') return false;
+            }
+            return true;
+          }).toList();
         } else if (_selectedTypeFilter == 'stray') {
           filtered = filtered.where((r) => (r['reportType'] != 'missing') && (r['isMissingPet'] != true)).toList();
         }
@@ -1488,6 +1508,8 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                               title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                               landmark: address,
                               report: report,
+                              onViewDetails: (rep) => _showReportDetailsDialog(context, rep),
+                              onRespond: (rep) => _showStatusActionModal(context, rep),
                             );
                           },
                         ),
@@ -1686,6 +1708,8 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                             title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                             landmark: address,
                             report: report,
+                            onViewDetails: (rep) => _showReportDetailsDialog(context, rep),
+                            onRespond: (rep) => _showStatusActionModal(context, rep),
                           );
                         },
                       ),
@@ -1844,7 +1868,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
               width: isDesktop ? 380 : null,
               child: Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 10,
+                elevation: 6,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -1860,53 +1884,79 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              (_selectedReportForMap!['status'] ?? 'Open').toString().toUpperCase(),
+                              _getStatusLabel(_selectedReportForMap!['status'] ?? 'Open'),
                               style: TextStyle(
                                 color: _getStatusColor(_selectedReportForMap!['status'] ?? 'Open'),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 11,
+                                fontSize: 12,
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              (_selectedReportForMap!['petName'] ?? _selectedReportForMap!['petType'] ?? 'Emergency Report').toString(),
+                              (_selectedReportForMap!['petType'] ?? _selectedReportForMap!['petName'] ?? 'Animal').toString(),
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close, size: 18),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.close, size: 20),
                             onPressed: () => setState(() => _selectedReportForMap = null),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        (_selectedReportForMap!['landmark'] ?? _selectedReportForMap!['address'] ?? _selectedReportForMap!['location'] ?? 'Location coordinates provided').toString(),
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                        (_selectedReportForMap!['description'] ?? '').toString(),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        (_selectedReportForMap!['address'] ?? _selectedReportForMap!['landmark'] ?? '').toString(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 12),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Expanded(
-                            child: ElevatedButton(
+                          TextButton(
+                            onPressed: () {
+                              final rep = _selectedReportForMap!;
+                              _showReportDetailsDialog(context, rep);
+                            },
+                            child: const Text('View Full Details', style: TextStyle(color: AppTheme.primaryOrange, fontWeight: FontWeight.w600, fontSize: 13)),
+                          ),
+                          const SizedBox(width: 8),
+                          if ((_selectedReportForMap!['status'] ?? '').toString().toLowerCase() == 'rescued')
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text('Rescued (Locked)', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                            )
+                          else
+                            ElevatedButton(
                               onPressed: () {
                                 final rep = _selectedReportForMap!;
-                                setState(() => _selectedReportForMap = null);
-                                _showReportDetailsDialog(context, rep);
+                                _showStatusActionModal(context, rep);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryOrange,
                                 foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                               ),
-                              child: const Text('View & Manage Details', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              child: const Text('Respond / Update', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                             ),
-                          ),
                         ],
                       ),
                     ],

@@ -10,6 +10,8 @@ class AdminMapDialog extends StatefulWidget {
   final String title;
   final String? landmark;
   final Map<String, dynamic>? report;
+  final void Function(Map<String, dynamic> report)? onViewDetails;
+  final void Function(Map<String, dynamic> report)? onRespond;
 
   const AdminMapDialog({
     super.key,
@@ -18,6 +20,8 @@ class AdminMapDialog extends StatefulWidget {
     this.title = 'Mark Location on Map',
     this.landmark,
     this.report,
+    this.onViewDetails,
+    this.onRespond,
   });
 
   static Future<LatLng?> pickLocation(
@@ -47,6 +51,8 @@ class AdminMapDialog extends StatefulWidget {
     String title = 'Reported Location',
     String? landmark,
     Map<String, dynamic>? report,
+    void Function(Map<String, dynamic> report)? onViewDetails,
+    void Function(Map<String, dynamic> report)? onRespond,
   }) {
     return showDialog<void>(
       context: context,
@@ -60,6 +66,8 @@ class AdminMapDialog extends StatefulWidget {
           title: title,
           landmark: landmark,
           report: report,
+          onViewDetails: onViewDetails,
+          onRespond: onRespond,
         ),
       ),
     );
@@ -150,7 +158,6 @@ class _AdminMapDialogState extends State<AdminMapDialog> {
     final statusColor = _getStatusColor(status);
     final markerColor = isMissing ? const Color(0xFFC62828) : statusColor;
     final statusLabel = _getStatusLabel(status);
-    final imageUrl = rep?['imageUrl']?.toString();
     final desc = rep?['description']?.toString() ?? '';
     final displayAddress = widget.landmark ?? rep?['address']?.toString() ?? '';
 
@@ -294,96 +301,122 @@ class _AdminMapDialogState extends State<AdminMapDialog> {
                     ],
                   ),
 
-                  // Interactive Report Popup Card (when pin is tapped or active)
+                  // Interactive Report Popup Card (matching mobile layout)
                   if (!widget.isPicker && _showReportCard)
                     Positioned(
                       left: 16,
+                      right: 16,
                       bottom: 16,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 380),
-                        child: Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          elevation: 10,
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: markerColor.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        statusLabel,
-                                        style: TextStyle(
-                                          color: markerColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        isMissing ? 'Missing: $displayPetName' : 'Report: $petType',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () => setState(() => _showReportCard = false),
-                                      tooltip: 'Hide card',
-                                    ),
-                                  ],
-                                ),
-                                if (imageUrl != null && imageUrl.isNotEmpty) ...[
-                                  const SizedBox(height: 10),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      imageUrl,
-                                      height: 120,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                                    ),
-                                  ),
-                                ],
-                                if (desc.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    desc,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 12.5, color: Colors.black87),
-                                  ),
-                                ],
-                                if (displayAddress.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 420),
+                          child: Card(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 6,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Row(
                                     children: [
-                                      Icon(Icons.location_on, size: 13, color: Colors.grey[600]),
-                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: markerColor.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          statusLabel,
+                                          style: TextStyle(
+                                            color: markerColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          displayAddress,
-                                          maxLines: 1,
+                                          isMissing ? displayPetName : petType,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                           overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(fontSize: 11.5, color: Colors.grey[600]),
                                         ),
+                                      ),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: const Icon(Icons.close, size: 20),
+                                        onPressed: () => setState(() => _showReportCard = false),
                                       ),
                                     ],
                                   ),
+                                  if (desc.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      desc,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                    ),
+                                  ],
+                                  if (displayAddress.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      displayAddress,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          if (widget.onViewDetails != null && widget.report != null) {
+                                            Navigator.pop(context);
+                                            widget.onViewDetails!(widget.report!);
+                                          } else {
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                        child: const Text('View Full Details', style: TextStyle(color: AppTheme.primaryOrange, fontWeight: FontWeight.w600, fontSize: 13)),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      if (status.toLowerCase() == 'rescued')
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Text('Rescued (Locked)', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                                        )
+                                      else
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            if (widget.onRespond != null && widget.report != null) {
+                                              Navigator.pop(context);
+                                              widget.onRespond!(widget.report!);
+                                            } else {
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppTheme.primaryOrange,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                          ),
+                                          child: const Text('Respond / Update', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                        ),
+                                    ],
+                                  ),
                                 ],
-                              ],
+                              ),
                             ),
                           ),
                         ),
