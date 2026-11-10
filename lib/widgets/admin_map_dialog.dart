@@ -182,23 +182,98 @@ class _AdminMapDialogState extends State<AdminMapDialog> {
                         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'org.saveapaws.admin',
                       ),
+                      // Incident Hotspot Heatmap layer (when viewing reported location)
+                      if (!widget.isPicker)
+                        CircleLayer(
+                          circles: [
+                            CircleMarker(
+                              point: _currentLocation,
+                              radius: 75,
+                              useRadiusInMeter: true,
+                              color: AppTheme.primaryOrange.withValues(alpha: 0.35),
+                              borderColor: Colors.transparent,
+                            ),
+                            CircleMarker(
+                              point: _currentLocation,
+                              radius: 170,
+                              useRadiusInMeter: true,
+                              color: AppTheme.primaryOrange.withValues(alpha: 0.18),
+                              borderColor: Colors.transparent,
+                            ),
+                            CircleMarker(
+                              point: _currentLocation,
+                              radius: 320,
+                              useRadiusInMeter: true,
+                              color: AppTheme.primaryOrange.withValues(alpha: 0.08),
+                              borderColor: Colors.transparent,
+                            ),
+                          ],
+                        ),
                       MarkerLayer(
                         markers: [
                           Marker(
                             point: _currentLocation,
-                            width: 50,
-                            height: 50,
-                            alignment: Alignment.topCenter,
-                            child: const Icon(
-                              Icons.location_on,
-                              size: 44,
-                              color: AppTheme.primaryOrange,
-                            ),
+                            width: widget.isPicker ? 50 : 46,
+                            height: widget.isPicker ? 50 : 46,
+                            alignment: widget.isPicker ? Alignment.topCenter : Alignment.center,
+                            child: widget.isPicker
+                                ? const Icon(
+                                    Icons.location_on,
+                                    size: 44,
+                                    color: AppTheme.primaryOrange,
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryOrange,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 2.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.25),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.pets,
+                                        color: Colors.white,
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
                     ],
                   ),
+
+                  // Top indicator badge (when viewing reported hotspot)
+                  if (!widget.isPicker)
+                    Positioned(
+                      top: 14,
+                      left: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.94),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.local_fire_department, size: 15, color: AppTheme.primaryOrange),
+                            SizedBox(width: 5),
+                            Text(
+                              'Incident Hotspot Heatmap',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
                   // Top instruction banner (if picker)
                   if (widget.isPicker)
