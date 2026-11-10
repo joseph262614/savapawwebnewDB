@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:convert';
-import 'dart:typed_data';
 import '../utils/platform_picker.dart';
 import '../theme/app_theme.dart';
 
@@ -506,13 +506,23 @@ class _AdminDonationScreenState extends State<AdminDonationScreen> {
             // Account Number
             TextFormField(
               controller: _accountNumberController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(20),
+              ],
               decoration: const InputDecoration(
                 labelText: 'Account / Mobile Number *',
-                hintText: 'e.g. 0912 345 6789 or 1234-5678-90',
+                hintText: 'e.g. 09123456789 or 123456789012 (Digits only)',
                 prefixIcon: Icon(Icons.credit_card),
                 border: OutlineInputBorder(),
               ),
-              validator: (v) => v == null || v.trim().isEmpty ? 'Enter the account number' : null,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Enter the account number';
+                if (!RegExp(r'^[0-9]+$').hasMatch(v.trim())) return 'Account number must contain digits only';
+                if (v.trim().length < 8) return 'Account number must be at least 8 digits';
+                return null;
+              },
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
