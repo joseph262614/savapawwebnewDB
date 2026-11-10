@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -595,14 +596,24 @@ class _AdminReportPetScreenState extends State<AdminReportPetScreen> {
                             child: TextFormField(
                               controller: _contactPhoneController,
                               keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(11),
+                              ],
                               decoration: InputDecoration(
                                 labelText: 'Owner / Contact Phone *',
-                                hintText: 'e.g. 0917-123-4567',
+                                hintText: 'e.g. 09171234567',
                                 prefixIcon: const Icon(Icons.phone_outlined, size: 20),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                               ),
-                              validator: (val) => val == null || val.trim().isEmpty ? 'Required' : null,
+                              validator: (val) {
+                                if (val == null || val.trim().isEmpty) return 'Required';
+                                if (!RegExp(r'^(09\d{9}|9\d{9}|\d{10,11})$').hasMatch(val.trim())) {
+                                  return 'Enter a valid 10-11 digit phone number';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                         ],

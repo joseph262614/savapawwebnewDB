@@ -149,8 +149,59 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
     );
   }
 
+  void _showUsePhoneDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.phone_android_rounded, color: AppTheme.primaryOrange, size: 28),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Use Your Phone to Respond',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Field rescue operations cannot be initiated from the web admin portal.',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Please use your mobile phone and open the Save-A-Paws mobile app to respond to this rescue. Responding in the field requires live mobile GPS navigation, real-time distance tracking, and on-site camera verification.',
+              style: TextStyle(fontSize: 13.5, color: Colors.black54, height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryOrange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK, Got it', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _updateStatus(String reportKey, String newStatus) async {
     try {
+      if (newStatus == 'In Progress') {
+        if (mounted) _showUsePhoneDialog(context);
+        return;
+      }
       final snap = await FirebaseDatabase.instance.ref().child('reports').child(reportKey).child('status').get();
       if (snap.exists && snap.value.toString().trim().toLowerCase() == 'rescued') {
         if (mounted) {
@@ -293,11 +344,25 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                   child: const Icon(Icons.directions_run, color: Colors.blue),
                 ),
                 title: const Text('Respond to Rescue', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Mark as In Progress and assign yourself as responder'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                subtitle: const Text('Field response requires the Save-A-Paws mobile app'),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.phone_android_rounded, size: 14, color: AppTheme.primaryOrange),
+                      SizedBox(width: 4),
+                      Text('Mobile Only', style: TextStyle(color: AppTheme.primaryOrange, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _updateStatus(reportId, 'In Progress');
+                  _showUsePhoneDialog(context);
                 },
               ),
             if (currentStatus.toLowerCase() != 'rescued')

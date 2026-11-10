@@ -53,8 +53,8 @@
       ".read": true,
       ".indexOn": ["category", "fosterId", "isAdopted", "breed"],
       "$petId": {
-        // Verified Fosters, Partners, or Admins can post pets, and author or admin can update/delete
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || (!data.exists() && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner') && root.child('users').child(auth.uid).child('isVerified').val() == true) || (data.exists() && data.child('fosterId').val() == auth.uid))",
+        // Fosters, Partners, or Admins can post pets, and author or admin can update/delete
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || (!data.exists() && (root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'foster' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner')) || (data.exists() && data.child('fosterId').val() == auth.uid))",
         // Breed is optional so fosters/partners can proceed without filling it in
         ".validate": "!newData.exists() || newData.hasChildren(['name', 'age', 'imageUrl', 'fosterId', 'category'])"
       }
@@ -67,8 +67,8 @@
       "$reportId": {
         // All logged-in roles can view reported pets in need
         ".read": "auth != null",
-        // Verified users, volunteers, partners, admins or author can write/update report
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('isVerified').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner' || (data.exists() && data.child('userId').val() == auth.uid))"
+        // Logged-in users can file a report; author, verified users, volunteers, partners, or admins can update
+        ".write": "auth != null && (!data.exists() || root.child('users').child(auth.uid).child('isVerified').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'volunteer' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'partner' || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'rescue partner' || (data.exists() && data.child('userId').val() == auth.uid))"
       }
     },
 

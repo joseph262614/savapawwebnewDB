@@ -44,12 +44,13 @@ class NotificationService extends ChangeNotifier {
   void _bindUserReadListener(String? uid) {
     _readSubscription?.cancel();
     _readSubscription = null;
+    _readAnnouncementIds.clear();
     if (uid == null || uid.isEmpty) {
       _recalculateUnreadCount();
       return;
     }
 
-    _readSubscription = _dbRef.child('users/$uid/read_announcements').onValue.listen((event) {
+    _readSubscription = _dbRef.child('users').child(uid).child('read_announcements').onValue.listen((event) {
       if (event.snapshot.exists && event.snapshot.value is Map) {
         final map = event.snapshot.value as Map;
         map.forEach((k, v) {
@@ -122,16 +123,16 @@ class NotificationService extends ChangeNotifier {
       if (id.isNotEmpty) {
         _readAnnouncementIds.add(id);
         if (uid != null && uid.isNotEmpty) {
-          updates['users/$uid/read_announcements/$id'] = true;
+          updates[id] = true;
         }
       }
     }
     _unreadCount = 0;
     notifyListeners();
 
-    if (updates.isNotEmpty) {
+    if (uid != null && uid.isNotEmpty && updates.isNotEmpty) {
       try {
-        await _dbRef.update(updates);
+        await _dbRef.child('users').child(uid).child('read_announcements').update(updates);
       } catch (e) {
         debugPrint("Error writing read announcements to Firebase: $e");
       }
