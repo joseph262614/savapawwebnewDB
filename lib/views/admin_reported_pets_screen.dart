@@ -726,6 +726,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                                 width: 44,
                                 height: 44,
                                 child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
                                   onTap: () {
                                     AdminMapDialog.showLocation(
                                       context,
