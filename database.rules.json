@@ -128,6 +128,15 @@
       }
     },
 
+    "pawpal_chats": {
+      "$uid": {
+        // Only the user who owns this AI chat or an admin can read their chat history
+        ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val().toLowerCase() == 'admin' || root.child('users').child(auth.uid).child('isAdmin').val() == true)",
+        // Only the user themselves can write or clear their AI chat history
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+
     "posts": {
       // Anyone can read community posts (guests & logged-in users)
       ".read": true,
