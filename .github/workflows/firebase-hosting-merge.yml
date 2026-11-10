@@ -23,4 +23,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SAVEAPAW_CAPSTONE_39587 }}
           channelId: live
-          projectId: saveapaw-capstone-39587
+          projectId: saveapawbackup-672cb
