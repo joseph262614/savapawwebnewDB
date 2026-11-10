@@ -25,32 +25,31 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD3-KNXw3dBBr-_bNWfl39LW19NpgblaUM',
-    appId: '1:605961291162:web:bf4fe23e0a39068809e623',
-    messagingSenderId: '605961291162',
-    projectId: 'saveapaw-capstone-39587',
-    authDomain: 'saveapaw-capstone-39587.firebaseapp.com',
-    databaseURL: 'https://saveapaw-capstone-39587-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'saveapaw-capstone-39587.firebasestorage.app',
-    measurementId: 'G-0K2MPNZK56',
+    apiKey: 'AIzaSyDMQbNG3S3ZCi7TxGvnn__WwL8xW0X9KlM',
+    appId: '1:1039537848058:web:55e8215945f8486dbc9343',
+    messagingSenderId: '1039537848058',
+    projectId: 'saveapawbackup-672cb',
+    authDomain: 'saveapawbackup-672cb.firebaseapp.com',
+    databaseURL: 'https://saveapawbackup-672cb-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'saveapawbackup-672cb.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDQ6h4qrVBbyUTK0NwbfiV7x245HD4rtoc',
-    appId: '1:605961291162:android:50ea943f89304caa09e623',
-    messagingSenderId: '605961291162',
-    projectId: 'saveapaw-capstone-39587',
-    databaseURL: 'https://saveapaw-capstone-39587-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'saveapaw-capstone-39587.firebasestorage.app',
+    apiKey: 'AIzaSyDMQbNG3S3ZCi7TxGvnn__WwL8xW0X9KlM',
+    appId: '1:1039537848058:android:f55b8452573b082cbc9343',
+    messagingSenderId: '1039537848058',
+    projectId: 'saveapawbackup-672cb',
+    databaseURL: 'https://saveapawbackup-672cb-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'saveapawbackup-672cb.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCK7xBQt2JlC7E77MfB9NP_UYKVJc_rbBg',
-    appId: '1:605961291162:ios:3078f2e5838f773609e623',
-    messagingSenderId: '605961291162',
-    projectId: 'saveapaw-capstone-39587',
-    databaseURL: 'https://saveapaw-capstone-39587-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'saveapaw-capstone-39587.firebasestorage.app',
+    apiKey: 'AIzaSyDMQbNG3S3ZCi7TxGvnn__WwL8xW0X9KlM',
+    appId: '1:1039537848058:ios:3078f2e5838f773609e623',
+    messagingSenderId: '1039537848058',
+    projectId: 'saveapawbackup-672cb',
+    databaseURL: 'https://saveapawbackup-672cb-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'saveapawbackup-672cb.firebasestorage.app',
     iosBundleId: 'com.example.saveapaws',
   );
 }

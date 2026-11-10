@@ -479,7 +479,7 @@ class _AdminReportPetScreenState extends State<AdminReportPetScreen> {
                           Expanded(
                             child: Text(
                               isMissing
-                                  ? 'Broadcasting a missing pet will alert rescuers, volunteers, and the community to help locate and reunite them with their family.'
+                                  ? 'Submitting a missing pet report will alert rescuers, volunteers, and the community to help locate and reunite them with their family.'
                                   : 'Reporting a stray animal creates a rescue ticket visible on the rescue dispatch map for urgent volunteer intervention.',
                               style: TextStyle(
                                 fontSize: 12,
@@ -714,11 +714,11 @@ class _AdminReportPetScreenState extends State<AdminReportPetScreen> {
                           onPressed: _isSubmitting ? null : _submitReport,
                           icon: _isSubmitting
                               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                              : Icon(isMissing ? Icons.campaign_rounded : Icons.send_rounded, size: 18),
+                              : const Icon(Icons.send_rounded, size: 18),
                           label: Text(
                             _isSubmitting
                                 ? 'Submitting...'
-                                : (isMissing ? 'Broadcast Missing Pet Alert' : 'Submit Stray Animal Report'),
+                                : (isMissing ? 'Submit Missing Pet Alert' : 'Submit Stray Animal Report'),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(
