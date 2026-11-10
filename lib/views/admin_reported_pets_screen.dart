@@ -149,7 +149,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
     );
   }
 
-  void _showUsePhoneDialog(BuildContext context) {
+  void _showUsePhoneDialog(BuildContext context, {String actionName = 'Field rescue operations'}) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -166,17 +166,17 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             ),
           ],
         ),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Field rescue operations cannot be initiated from the web admin portal.',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+              '$actionName cannot be completed from the web admin portal.',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
             ),
-            SizedBox(height: 10),
-            Text(
-              'Please use your mobile phone and open the Save-A-Paws mobile app to respond to this rescue. Responding in the field requires live mobile GPS navigation, real-time distance tracking, and on-site camera verification.',
+            const SizedBox(height: 10),
+            const Text(
+              'Please use your mobile phone and open the Save-A-Paws mobile app to respond or verify rescues. Field rescue operations and rescue verification require live mobile GPS navigation, real-time distance tracking, and on-site camera verification.',
               style: TextStyle(fontSize: 13.5, color: Colors.black54, height: 1.4),
             ),
           ],
@@ -198,8 +198,13 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
 
   Future<void> _updateStatus(String reportKey, String newStatus) async {
     try {
-      if (newStatus == 'In Progress') {
-        if (mounted) _showUsePhoneDialog(context);
+      if (newStatus == 'In Progress' || newStatus == 'Rescued') {
+        if (mounted) {
+          _showUsePhoneDialog(
+            context,
+            actionName: newStatus == 'Rescued' ? 'Marking a pet as rescued' : 'Field rescue operations',
+          );
+        }
         return;
       }
       final snap = await FirebaseDatabase.instance.ref().child('reports').child(reportKey).child('status').get();
@@ -377,11 +382,25 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                   child: const Icon(Icons.check_circle_outline, color: Colors.green),
                 ),
                 title: const Text('Mark as Rescued', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Animal has been rescued or brought to safety'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                subtitle: const Text('Rescuing requires the Save-A-Paws mobile app'),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.phone_android_rounded, size: 14, color: AppTheme.primaryOrange),
+                      SizedBox(width: 4),
+                      Text('Mobile Only', style: TextStyle(color: AppTheme.primaryOrange, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _updateStatus(reportId, 'Rescued');
+                  _showUsePhoneDialog(context, actionName: 'Marking a pet as rescued');
                 },
               ),
             if (currentStatus.toLowerCase() != 'open')
