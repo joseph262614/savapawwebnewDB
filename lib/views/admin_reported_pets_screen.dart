@@ -228,7 +228,12 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
         'lastUpdatedBy': user?.uid ?? 'admin',
         'lastUpdatedByEmail': user?.email ?? 'admin',
       };
-      if (newStatus == 'In Progress') {
+      if (newStatus == 'Open') {
+        updates['responderName'] = null;
+        updates['responderId'] = null;
+        updates['responderEmail'] = null;
+        updates['respondedAt'] = null;
+      } else if (newStatus == 'In Progress') {
         updates['responderName'] = 'Admin / Coordinator';
         updates['respondedAt'] = ServerValue.timestamp;
       } else if (newStatus == 'Rescued') {
@@ -664,7 +669,35 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                 ],
                 _buildInfoRow('Reported At', timeStr),
                 _buildInfoRow('Reporter UID', userId?.toString() ?? 'N/A'),
-                if (responderName != null) _buildInfoRow('Responder', responderName.toString()),
+                if (status.toString().trim().toLowerCase() != 'open' &&
+                    responderName != null &&
+                    responderName.toString().trim().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.volunteer_activism, color: Colors.blue, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Responder assigned: $responderName',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1317,6 +1350,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
             final isMissing = (report['reportType'] == 'missing') || (report['isMissingPet'] == true);
             final petName = report['petName']?.toString();
             final contactPhone = report['contactPhone']?.toString();
+            final responderName = report['responderName']?.toString();
 
             return DataRow(
               cells: [
@@ -1428,53 +1462,88 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                 DataCell(
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: isRescued
-                        ? Tooltip(
-                            message: 'Rescue Verified & Locked. Status cannot be modified.',
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.verified, size: 14, color: Colors.green),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Rescued (Locked)',
-                                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        isRescued
+                            ? Tooltip(
+                                message: 'Rescue Verified & Locked. Status cannot be modified.',
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
                                   ),
-                                ],
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.verified, size: 14, color: Colors.green),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'Rescued (Locked)',
+                                        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : InkWell(
+                                onTap: () => _showStatusActionModal(context, report),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Tooltip(
+                                  message: 'Click to update rescue status',
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
+                                        const SizedBox(width: 6),
+                                        Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                                        const SizedBox(width: 4),
+                                        Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
+                        if (status.toString().trim().toLowerCase() != 'open' &&
+                            responderName != null &&
+                            responderName.trim().isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
                             ),
-                          )
-                        : InkWell(
-                            onTap: () => _showStatusActionModal(context, report),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Tooltip(
-                              message: 'Click to update rescue status',
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.volunteer_activism, size: 11, color: Colors.blue),
+                                const SizedBox(width: 4),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 120),
+                                  child: Text(
+                                    responderName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.w600),
+                                  ),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
-                                    const SizedBox(width: 6),
-                                    Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
-                                    const SizedBox(width: 4),
-                                    Icon(Icons.arrow_drop_down, size: 14, color: statusColor),
-                                  ],
-                                ),
-                              ),
+                              ],
                             ),
                           ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
                 DataCell(
@@ -1922,6 +1991,34 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
+                      if ((_selectedReportForMap!['status'] ?? '').toString().toLowerCase() != 'open' &&
+                          _selectedReportForMap!['responderName'] != null &&
+                          _selectedReportForMap!['responderName'].toString().trim().isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.volunteer_activism, size: 12, color: Colors.blue),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  'Responder: ${_selectedReportForMap!['responderName']}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 11, color: Colors.blue, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,

@@ -160,6 +160,7 @@ class _AdminMapDialogState extends State<AdminMapDialog> {
     final statusLabel = _getStatusLabel(status);
     final desc = rep?['description']?.toString() ?? '';
     final displayAddress = widget.landmark ?? rep?['address']?.toString() ?? '';
+    final responderName = rep?['responderName']?.toString();
 
     return Center(
       child: Container(
@@ -368,6 +369,34 @@ class _AdminMapDialogState extends State<AdminMapDialog> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                  if (status.toLowerCase() != 'open' &&
+                                      responderName != null &&
+                                      responderName.trim().isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.volunteer_activism, size: 12, color: Colors.blue),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              'Responder: $responderName',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontSize: 11, color: Colors.blue, fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                   const SizedBox(height: 12),
