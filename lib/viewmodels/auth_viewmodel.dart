@@ -196,29 +196,56 @@ class AuthViewModel extends ChangeNotifier {
   Future<String?> _getEmailFromUsername(String username) async {
     final key = _usernameKey(username);
     if (key.isEmpty) return null;
-    final snapshot = await _db.ref().child('usernames').child(key).get();
-    if (!snapshot.exists) return null;
-    final data = snapshot.value;
-    if (data is Map) return data['email']?.toString();
-    return null;
+    try {
+      final snapshot = await _db
+          .ref()
+          .child('usernames')
+          .child(key)
+          .get()
+          .timeout(const Duration(seconds: 6));
+      if (!snapshot.exists) return null;
+      final data = snapshot.value;
+      if (data is Map) return data['email']?.toString();
+      return null;
+    } catch (e) {
+      debugPrint("_getEmailFromUsername error: $e");
+      return null;
+    }
   }
 
   Future<bool> isUsernameAvailable(String username) async {
     final key = _usernameKey(username);
     if (key.isEmpty) return false;
-    final snapshot = await _db.ref().child('usernames').child(key).get();
-    return !snapshot.exists;
+    try {
+      final snapshot = await _db
+          .ref()
+          .child('usernames')
+          .child(key)
+          .get()
+          .timeout(const Duration(seconds: 6));
+      return !snapshot.exists;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _ensureUsernameIndexed(User user) async {
     try {
-      final snap = await _db.ref().child('users').child(user.uid).child('username').get();
+      final snap = await _db
+          .ref()
+          .child('users')
+          .child(user.uid)
+          .child('username')
+          .get()
+          .timeout(const Duration(seconds: 5));
       final username = snap.value?.toString();
       if (username == null || username.trim().isEmpty || user.email == null) return;
       final ref = _db.ref().child('usernames').child(_usernameKey(username));
-      final existing = await ref.get();
+      final existing = await ref.get().timeout(const Duration(seconds: 5));
       if (!existing.exists) {
-        await ref.set({'uid': user.uid, 'email': user.email});
+        await ref
+            .set({'uid': user.uid, 'email': user.email})
+            .timeout(const Duration(seconds: 5));
       }
     } catch (e) {
       debugPrint("Username index error: $e");

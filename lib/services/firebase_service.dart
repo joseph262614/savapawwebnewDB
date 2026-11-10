@@ -52,3 +52,4 @@ class FirebaseService {
 
 /// Global shared database instance export
 FirebaseDatabase get db => FirebaseService.db;
+

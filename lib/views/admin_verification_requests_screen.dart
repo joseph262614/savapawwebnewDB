@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_optimized_image.dart';
+import '../services/firebase_service.dart';
 
 import 'admin_screen.dart';
 
@@ -23,7 +25,7 @@ class AdminVerificationRequestsScreen extends StatelessWidget {
     debugPrint("--------------------------");
 
     final body = StreamBuilder(
-      stream: FirebaseDatabase.instance.ref().child('verificationRequests').onValue,
+      stream: FirebaseService.ref.child('verificationRequests').onValue,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           debugPrint("DATABASE ERROR: ${snapshot.error}");
@@ -575,7 +577,7 @@ class _VerificationDetailContent extends StatelessWidget {
       }
 
       try {
-        final ref = FirebaseDatabase.instance.ref();
+        final ref = FirebaseService.ref;
         final String reason = reasonController.text.trim();
         final messageId = ref.child('system_messages').child(uid).push().key ?? 'msg_${DateTime.now().millisecondsSinceEpoch}';
         final String noticeTitle = approve ? 'Account Verified' : 'Verification Request Update';
@@ -600,7 +602,10 @@ class _VerificationDetailContent extends StatelessWidget {
           },
         };
 
-        await ref.update(atomicUpdates);
+        await ref.update(atomicUpdates).timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => throw TimeoutException("Request timed out. Please try again."),
+        );
 
         if (context.mounted) {
           Navigator.pop(context);
