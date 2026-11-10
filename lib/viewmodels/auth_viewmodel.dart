@@ -106,26 +106,33 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<bool> checkIfAdmin(String uid) async {
-    try {
-      final snapshot = await _db
-          .ref()
-          .child('users')
-          .child(uid)
-          .child('role')
-          .get()
-          .timeout(const Duration(seconds: 4), onTimeout: () {
-            debugPrint("checkIfAdmin timed out after 4 seconds");
-            throw TimeoutException("checkIfAdmin query timed out");
-          });
-      if (snapshot.exists && snapshot.value != null) {
-        final role = snapshot.value.toString().trim().toLowerCase();
-        return role == 'admin';
+    for (int attempt = 0; attempt < 3; attempt++) {
+      try {
+        final snapshot = await _db
+            .ref()
+            .child('users')
+            .child(uid)
+            .child('role')
+            .get()
+            .timeout(const Duration(seconds: 4), onTimeout: () {
+              debugPrint("checkIfAdmin timed out after 4 seconds");
+              throw TimeoutException("checkIfAdmin query timed out");
+            });
+        if (snapshot.exists && snapshot.value != null) {
+          final role = snapshot.value.toString().trim().toLowerCase();
+          return role == 'admin';
+        }
+        return false;
+      } catch (e) {
+        if (attempt < 2 && e.toString().contains('permission-denied')) {
+          await Future.delayed(const Duration(milliseconds: 300));
+          continue;
+        }
+        debugPrint("checkIfAdmin error: $e");
+        return false;
       }
-      return false;
-    } catch (e) {
-      debugPrint("checkIfAdmin error: $e");
-      return false;
     }
+    return false;
   }
 
   Future<String?> signIn(String identifier, String password) async {
