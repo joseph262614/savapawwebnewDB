@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import '../services/firebase_service.dart';
 
 /// Represents a single user record from the database.
 class AppUser {
@@ -87,7 +88,7 @@ class AppUser {
 }
 
 class UserManagementViewModel extends ChangeNotifier {
-  final FirebaseDatabase _db = FirebaseDatabase.instance;
+  final FirebaseDatabase _db = FirebaseService.db;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   StreamSubscription<DatabaseEvent>? _usersSubscription;

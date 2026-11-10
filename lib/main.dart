@@ -2,14 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'theme/app_theme.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/user_management_viewmodel.dart';
 import 'views/login_screen.dart';
 import 'views/admin_screen.dart';
 import 'views/forgot_password_screen.dart';
-import 'firebase_options.dart';
+import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,21 +35,7 @@ class _FirebaseInitGateState extends State<FirebaseInitGate> {
 
   Future<void> _init() async {
     try {
-      try {
-        if (Firebase.apps.isEmpty) {
-          await Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          );
-        }
-      } on FirebaseException catch (e) {
-        if (e.code != 'duplicate-app') {
-          rethrow;
-        }
-      } catch (e) {
-        if (!e.toString().contains('duplicate-app')) {
-          rethrow;
-        }
-      }
+      await FirebaseService.initialize();
 
       // Brief smooth transition delay
       await Future.delayed(const Duration(milliseconds: 300));

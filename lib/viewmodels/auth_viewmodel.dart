@@ -2,10 +2,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import '../services/firebase_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   FirebaseAuth get _auth => FirebaseAuth.instance;
-  FirebaseDatabase get _db => FirebaseDatabase.instance;
+  FirebaseDatabase get _db => FirebaseService.db;
   
   User? _user;
   User? get user => _user;

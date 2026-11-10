@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'platform_notification.dart';
+import 'firebase_service.dart';
 
 class NotificationService extends ChangeNotifier {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
+  final DatabaseReference _dbRef = FirebaseService.ref;
   StreamSubscription<DatabaseEvent>? _announcementsSubscription;
   StreamSubscription<DatabaseEvent>? _readSubscription;
   StreamSubscription<User?>? _authSubscription;
