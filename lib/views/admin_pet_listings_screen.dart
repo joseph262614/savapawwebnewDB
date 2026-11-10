@@ -117,13 +117,22 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
           }
 
           final List<_ShelterPet> allPets = [];
-          if (snapshot.hasData && snapshot.data?.snapshot.value is Map) {
-            final petsMap = snapshot.data!.snapshot.value as Map;
-            petsMap.forEach((key, val) {
-              if (val is Map) {
-                allPets.add(_ShelterPet.fromMap(key.toString(), val));
+          if (snapshot.hasData && snapshot.data?.snapshot.value != null) {
+            final dynamic raw = snapshot.data!.snapshot.value;
+            if (raw is Map) {
+              raw.forEach((key, val) {
+                if (val is Map) {
+                  allPets.add(_ShelterPet.fromMap(key.toString(), val));
+                }
+              });
+            } else if (raw is List) {
+              for (int i = 0; i < raw.length; i++) {
+                final val = raw[i];
+                if (val is Map) {
+                  allPets.add(_ShelterPet.fromMap(val['id']?.toString() ?? i.toString(), val));
+                }
               }
-            });
+            }
           }
 
           // Sort pets
@@ -760,7 +769,7 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                           tooltip: 'View Pet Details',
                           onPressed: () => _showPetDetailsDialog(pet),
                         ),
-                        if (!pet.isAdopted) ...[
+                        if (!pet.isAdopted)
                           // Quick Status Toggle
                           Builder(
                             builder: (context) {
@@ -801,36 +810,35 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                               );
                             },
                           ),
-                          // Edit Pet - only allowed if poster
-                          if (isPoster)
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
-                              tooltip: 'Edit Pet Info',
-                              onPressed: () => _showEditPetDialog(pet),
-                            )
-                          else
-                            Tooltip(
-                              message: 'Only the user who posted this pet can edit its info',
-                              child: IconButton(
-                                icon: Icon(Icons.lock_outline, size: 16, color: Colors.grey.shade400),
-                                tooltip: 'Only the poster can edit this pet',
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Cannot edit "${pet.name}". Only the user who posted this pet can edit its info.'),
-                                      backgroundColor: Colors.orange.shade800,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          // Delete Pet
+                        // Edit Pet - allowed for authorized poster or admin
+                        if (isPoster)
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                            tooltip: 'Delete Pet Listing',
-                            onPressed: () => _confirmDeletePet(pet),
+                            icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
+                            tooltip: 'Edit Pet Info',
+                            onPressed: () => _showEditPetDialog(pet),
+                          )
+                        else
+                          Tooltip(
+                            message: 'Only the user who posted this pet can edit its info',
+                            child: IconButton(
+                              icon: Icon(Icons.lock_outline, size: 16, color: Colors.grey.shade400),
+                              tooltip: 'Only the poster can edit this pet',
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Cannot edit "${pet.name}". Only the user who posted this pet can edit its info.'),
+                                    backgroundColor: Colors.orange.shade800,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ],
+                        // Delete Pet
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                          tooltip: 'Delete Pet Listing',
+                          onPressed: () => _confirmDeletePet(pet),
+                        ),
                       ],
                     ),
                   ),
@@ -939,7 +947,7 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                         icon: const Icon(Icons.visibility_outlined, size: 16),
                         label: const Text('Details'),
                       ),
-                      if (!pet.isAdopted) ...[
+                      if (!pet.isAdopted)
                         Builder(
                           builder: (context) {
                             final isPending = _pendingPetUpdates.contains(pet.id);
@@ -977,33 +985,32 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                             );
                           },
                         ),
-                        if (isPoster)
-                          TextButton.icon(
-                            onPressed: () => _showEditPetDialog(pet),
-                            icon: const Icon(Icons.edit_outlined, size: 16),
-                            label: const Text('Edit'),
-                          )
-                        else
-                          Tooltip(
-                            message: 'Only the user who posted this pet can edit its info',
-                            child: TextButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Cannot edit "${pet.name}". Only the user who posted this pet can edit its info.'),
-                                    backgroundColor: Colors.orange.shade800,
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.lock_outline, size: 15, color: Colors.grey),
-                              label: Text('Edit', style: TextStyle(color: Colors.grey.shade400)),
-                            ),
+                      if (isPoster)
+                        TextButton.icon(
+                          onPressed: () => _showEditPetDialog(pet),
+                          icon: const Icon(Icons.edit_outlined, size: 16),
+                          label: const Text('Edit'),
+                        )
+                      else
+                        Tooltip(
+                          message: 'Only the user who posted this pet can edit its info',
+                          child: TextButton.icon(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Cannot edit "${pet.name}". Only the user who posted this pet can edit its info.'),
+                                  backgroundColor: Colors.orange.shade800,
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.lock_outline, size: 15, color: Colors.grey),
+                            label: Text('Edit', style: TextStyle(color: Colors.grey.shade400)),
                           ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                          onPressed: () => _confirmDeletePet(pet),
                         ),
-                      ],
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                        onPressed: () => _confirmDeletePet(pet),
+                      ),
                     ],
                   ),
                 ),
@@ -1288,21 +1295,19 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
-                  if (!pet.isAdopted) ...[
-                    const SizedBox(width: 10),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _showEditPetDialog(pet);
-                      },
-                      icon: const Icon(Icons.edit, size: 16),
-                      label: const Text('Edit Details'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryOrange,
-                        foregroundColor: Colors.white,
-                      ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showEditPetDialog(pet);
+                    },
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Edit Details'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryOrange,
+                      foregroundColor: Colors.white,
                     ),
-                  ],
+                  ),
                 ],
               ),
             ],
@@ -1340,18 +1345,6 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
   }
 
   void _showEditPetDialog(_ShelterPet pet) {
-    if (pet.isAdopted) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cannot edit "${pet.name}". Handover has already been completed for this adopted pet.'),
-            backgroundColor: Colors.purple.shade800,
-          ),
-        );
-      }
-      return;
-    }
-
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
     if (pet.fosterId.isNotEmpty && pet.fosterId != currentUid) {
       if (mounted) {

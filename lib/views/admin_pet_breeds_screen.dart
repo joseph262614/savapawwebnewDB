@@ -74,13 +74,22 @@ class _AdminPetBreedsScreenState extends State<AdminPetBreedsScreen> with Single
           }
 
           final List<_PetItem> allPets = [];
-          if (snapshot.hasData && snapshot.data?.snapshot.value is Map) {
-            final petsMap = snapshot.data!.snapshot.value as Map;
-            petsMap.forEach((key, val) {
-              if (val is Map) {
-                allPets.add(_PetItem.fromMap(key.toString(), val));
+          if (snapshot.hasData && snapshot.data?.snapshot.value != null) {
+            final dynamic raw = snapshot.data!.snapshot.value;
+            if (raw is Map) {
+              raw.forEach((key, val) {
+                if (val is Map) {
+                  allPets.add(_PetItem.fromMap(key.toString(), val));
+                }
+              });
+            } else if (raw is List) {
+              for (int i = 0; i < raw.length; i++) {
+                final val = raw[i];
+                if (val is Map) {
+                  allPets.add(_PetItem.fromMap(val['id']?.toString() ?? i.toString(), val));
+                }
               }
-            });
+            }
           }
 
           // Compute analytics

@@ -20,7 +20,7 @@ class AdminReportedPetsScreen extends StatefulWidget {
 
 class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
   bool _isMapView = false;
-  bool _showHeatmapLayer = true;
+  bool _markerJustTapped = false;
   final MapController _mapController = MapController();
   Map<String, dynamic>? _selectedReportForMap;
   String _selectedFilter = 'all'; // 'all', 'open', 'in progress', 'rescued', 'closed'
@@ -677,6 +677,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                           location: petCoordinates,
                           title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                           landmark: address,
+                          report: report,
                         );
                       },
                       icon: const Icon(Icons.map_rounded, size: 14, color: AppTheme.primaryOrange),
@@ -718,52 +719,40 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'org.saveapaws.admin',
                           ),
-                          // Incident Sighting Hotspot / Heatmap Gradient Rings
-                          CircleLayer(
-                            circles: [
-                              CircleMarker(
-                                point: petCoordinates,
-                                radius: 75,
-                                useRadiusInMeter: true,
-                                color: (isMissing ? const Color(0xFFC62828) : _getStatusColor(status)).withValues(alpha: 0.35),
-                                borderColor: Colors.transparent,
-                              ),
-                              CircleMarker(
-                                point: petCoordinates,
-                                radius: 160,
-                                useRadiusInMeter: true,
-                                color: (isMissing ? const Color(0xFFC62828) : _getStatusColor(status)).withValues(alpha: 0.18),
-                                borderColor: Colors.transparent,
-                              ),
-                              CircleMarker(
-                                point: petCoordinates,
-                                radius: 300,
-                                useRadiusInMeter: true,
-                                color: (isMissing ? const Color(0xFFC62828) : _getStatusColor(status)).withValues(alpha: 0.08),
-                                borderColor: Colors.transparent,
-                              ),
-                            ],
-                          ),
                           MarkerLayer(
                             markers: [
                               Marker(
                                 point: petCoordinates,
                                 width: 44,
                                 height: 44,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isMissing ? const Color(0xFFC62828) : _getStatusColor(status),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2.5),
-                                    boxShadow: [
-                                      BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2)),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Icon(
-                                      isMissing ? Icons.person_search_rounded : Icons.pets,
-                                      color: Colors.white,
-                                      size: 20,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    AdminMapDialog.showLocation(
+                                      context,
+                                      location: petCoordinates,
+                                      title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
+                                      landmark: address,
+                                      report: report,
+                                    );
+                                  },
+                                  child: MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: isMissing ? const Color(0xFFC62828) : _getStatusColor(status),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 2.5),
+                                        boxShadow: [
+                                          BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2)),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          isMissing ? Icons.person_search_rounded : Icons.pets,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -771,27 +760,6 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                             ],
                           ),
                         ],
-                      ),
-                      // Top Left Heatmap Badge
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.94),
-                            borderRadius: BorderRadius.circular(6),
-                            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.local_fire_department, size: 13, color: AppTheme.primaryOrange),
-                              SizedBox(width: 4),
-                              Text('Incident Sighting Heatmap', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.black87)),
-                            ],
-                          ),
-                        ),
                       ),
                       Positioned(
                         bottom: 8,
@@ -804,6 +772,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                               location: petCoordinates,
                               title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                               landmark: address,
+                              report: report,
                             );
                           },
                           tooltip: 'Expand Map / Open Maps',
@@ -1028,9 +997,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                       children: [
                         OutlinedButton.icon(
                           onPressed: () => setState(() => _isMapView = !_isMapView),
-                          icon: Icon(_isMapView ? Icons.view_list_rounded : Icons.local_fire_department_rounded, size: 16),
+                          icon: Icon(_isMapView ? Icons.view_list_rounded : Icons.map_rounded, size: 16),
                           label: Text(
-                            _isMapView ? 'Switch to List View' : 'Live Incident Heatmap',
+                            _isMapView ? 'Switch to List View' : 'Live Incident Map',
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           style: OutlinedButton.styleFrom(
@@ -1517,6 +1486,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                               location: coords,
                               title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                               landmark: address,
+                              report: report,
                             );
                           },
                         ),
@@ -1714,6 +1684,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                             location: coords,
                             title: isMissing ? 'Last Seen: ${petName ?? petType}' : 'Reported Stray: $petType',
                             landmark: address,
+                            report: report,
                           );
                         },
                       ),
@@ -1745,7 +1716,6 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
 
   Widget _buildLiveMap(List<Map<String, dynamic>> filteredReports, bool isDesktop) {
     final List<Marker> markers = [];
-    final List<CircleMarker> heatmapCircles = [];
     LatLng centerPos = const LatLng(14.5320, 121.0781); // Metro East / Manila center
 
     for (final report in filteredReports) {
@@ -1763,32 +1733,6 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
       centerPos = point;
       final color = _getStatusColor(report['status'] ?? 'Open');
       final isMissing = (report['isMissing'] == true || (report['reportType'] ?? '').toString().toLowerCase() == 'missing');
-      final baseColor = isMissing ? const Color(0xFFC62828) : color;
-
-      // Concentric heat rings forming realistic heatmap density gradients
-      heatmapCircles.addAll([
-        CircleMarker(
-          point: point,
-          radius: 75,
-          useRadiusInMeter: true,
-          color: baseColor.withValues(alpha: 0.35),
-          borderColor: Colors.transparent,
-        ),
-        CircleMarker(
-          point: point,
-          radius: 170,
-          useRadiusInMeter: true,
-          color: baseColor.withValues(alpha: 0.18),
-          borderColor: Colors.transparent,
-        ),
-        CircleMarker(
-          point: point,
-          radius: 320,
-          useRadiusInMeter: true,
-          color: baseColor.withValues(alpha: 0.08),
-          borderColor: Colors.transparent,
-        ),
-      ]);
 
       markers.add(
         Marker(
@@ -1796,7 +1740,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
           width: 44,
           height: 44,
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
+              _markerJustTapped = true;
               setState(() {
                 _selectedReportForMap = report;
               });
@@ -1845,6 +1791,10 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
               initialCenter: centerPos,
               initialZoom: 13,
               onTap: (_, __) {
+                if (_markerJustTapped) {
+                  _markerJustTapped = false;
+                  return;
+                }
                 if (_selectedReportForMap != null) {
                   setState(() => _selectedReportForMap = null);
                 }
@@ -1855,74 +1805,33 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.saveapaw.adminweb',
               ),
-              if (_showHeatmapLayer)
-                CircleLayer(circles: heatmapCircles),
               MarkerLayer(markers: markers),
             ],
           ),
-          // Map header badge & Heatmap Toggle
+          // Map header badge
           Positioned(
             top: 16,
             left: 16,
-            right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
-                    ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.map_rounded, color: AppTheme.primaryOrange, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${markers.length} Live Incident Pin${markers.length == 1 ? '' : 's'} on Map',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.local_fire_department, color: AppTheme.primaryOrange, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${markers.length} Live Incident Hotspots & Heatmap',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => _showHeatmapLayer = !_showHeatmapLayer),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _showHeatmapLayer ? AppTheme.primaryOrange : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.primaryOrange, width: 1.5),
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.local_fire_department_rounded,
-                          size: 16,
-                          color: _showHeatmapLayer ? Colors.white : AppTheme.primaryOrange,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _showHeatmapLayer ? 'Heatmap: ON' : 'Heatmap: OFF',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: _showHeatmapLayer ? Colors.white : AppTheme.primaryOrange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           // Selected report card popup
