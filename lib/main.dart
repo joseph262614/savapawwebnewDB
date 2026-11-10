@@ -36,10 +36,20 @@ class _FirebaseInitGateState extends State<FirebaseInitGate> {
 
   Future<void> _init() async {
     try {
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
+      try {
+        if (Firebase.apps.isEmpty) {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+        }
+      } on FirebaseException catch (e) {
+        if (e.code != 'duplicate-app') {
+          rethrow;
+        }
+      } catch (e) {
+        if (!e.toString().contains('duplicate-app')) {
+          rethrow;
+        }
       }
 
       // Brief smooth transition delay
