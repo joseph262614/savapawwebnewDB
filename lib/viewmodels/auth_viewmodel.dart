@@ -45,7 +45,7 @@ class AuthViewModel extends ChangeNotifier {
     _authSubscription = _auth.authStateChanges().listen((User? user) async {
       _user = user;
       if (user != null) {
-        final isAdminFresh = await checkIfAdmin(user.uid, email: user.email);
+        final isAdminFresh = await checkIfAdmin(user.uid);
         _isAdminSession = isAdminFresh;
         if (!isAdminFresh) {
           _userData = null;
@@ -104,7 +104,7 @@ class AuthViewModel extends ChangeNotifier {
     });
   }
 
-  Future<bool> checkIfAdmin(String uid, {String? email}) async {
+  Future<bool> checkIfAdmin(String uid) async {
     try {
       final snapshot = await _db
           .ref()
@@ -120,33 +120,6 @@ class AuthViewModel extends ChangeNotifier {
         final role = snapshot.value.toString().trim().toLowerCase();
         return role == 'admin';
       }
-
-      // Resilient fallback: auto-link newly generated Auth UIDs to matching existing admin profiles
-      final targetEmail = (email ?? _auth.currentUser?.email)?.trim().toLowerCase();
-      if (targetEmail != null && targetEmail.isNotEmpty) {
-        final usersSnap = await _db.ref().child('users').get();
-        if (usersSnap.exists && usersSnap.value is Map) {
-          final usersMap = Map<dynamic, dynamic>.from(usersSnap.value as Map);
-          for (final entry in usersMap.entries) {
-            final val = entry.value;
-            if (val is Map && (val['email']?.toString().toLowerCase().trim() == targetEmail)) {
-              final role = val['role']?.toString().trim().toLowerCase();
-              if (role == 'admin') {
-                await _db.ref().child('users').child(uid).update(Map<String, dynamic>.from(val));
-                final username = val['username']?.toString();
-                if (username != null && username.isNotEmpty) {
-                  await _db.ref().child('usernames').child(_usernameKey(username)).set({
-                    'uid': uid,
-                    'email': targetEmail,
-                  });
-                }
-                return true;
-              }
-            }
-          }
-        }
-      }
-
       return false;
     } catch (e) {
       debugPrint("checkIfAdmin error: $e");
@@ -182,7 +155,7 @@ class AuthViewModel extends ChangeNotifier {
       
       if (credential.user != null) {
         await _ensureUsernameIndexed(credential.user!);
-        bool isAdminUser = await checkIfAdmin(credential.user!.uid, email: email);
+        bool isAdminUser = await checkIfAdmin(credential.user!.uid);
         _isAdminSession = isAdminUser;
         
         if (!isAdminUser) {
