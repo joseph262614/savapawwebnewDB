@@ -47,15 +47,23 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void _handleLogin(AuthViewModel authViewModel) async {
     setState(() => _errorMessage = null);
 
-    if (_identifierController.text.isEmpty || _passwordController.text.isEmpty) {
+    final identifier = _identifierController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (identifier.isEmpty || password.isEmpty) {
       setState(() => _errorMessage = 'Please enter credentials');
+      return;
+    }
+
+    if (identifier.contains('@') && !RegExp(r'^[\w\.\-]+@[\w\-]+\.[a-zA-Z]{2,}$').hasMatch(identifier)) {
+      setState(() => _errorMessage = 'Please enter a valid email address.');
       return;
     }
 
     setState(() => _isLoading = true);
     final error = await authViewModel.signIn(
-      _identifierController.text.trim(),
-      _passwordController.text.trim(),
+      identifier,
+      password,
     );
 
     if (!mounted) return;

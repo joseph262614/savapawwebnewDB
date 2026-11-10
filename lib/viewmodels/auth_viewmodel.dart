@@ -168,9 +168,21 @@ class AuthViewModel extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
         return "Incorrect email or password";
+      } else if (e.code == 'invalid-email') {
+        return "Please enter a valid email address.";
+      } else if (e.code == 'network-request-failed') {
+        return "No internet connection. Please check your network and try again.";
+      } else if (e.code == 'too-many-requests') {
+        return "Too many failed attempts. Please try again later or reset your password.";
+      } else if (e.code == 'user-disabled') {
+        return "This account has been disabled. Please contact shelter support.";
       }
-      return e.message;
+      return e.message ?? "An unexpected authentication error occurred. Please try again.";
     } catch (e) {
+      final errStr = e.toString().toLowerCase();
+      if (errStr.contains('network') || errStr.contains('timeout') || errStr.contains('connection')) {
+        return "No internet connection. Please check your network and try again.";
+      }
       return e.toString();
     }
   }
