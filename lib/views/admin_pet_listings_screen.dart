@@ -1042,7 +1042,7 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
   Widget _buildStatusBadge(_ShelterPet pet) {
     if (pet.isAdopted) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: Colors.purple.shade50,
           borderRadius: BorderRadius.circular(8),
@@ -1051,10 +1051,10 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 6, height: 6, decoration: BoxDecoration(color: Colors.purple.shade700, shape: BoxShape.circle)),
-            const SizedBox(width: 5),
+            Icon(Icons.verified, size: 13, color: Colors.purple.shade700),
+            const SizedBox(width: 4),
             Text(
-              'Adopted',
+              'Handover Completed',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.purple.shade700),
             ),
           ],
@@ -1288,19 +1288,21 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
-                  const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _showEditPetDialog(pet);
-                    },
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Edit Details'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryOrange,
-                      foregroundColor: Colors.white,
+                  if (!pet.isAdopted) ...[
+                    const SizedBox(width: 10),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showEditPetDialog(pet);
+                      },
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text('Edit Details'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryOrange,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
@@ -1338,6 +1340,18 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
   }
 
   void _showEditPetDialog(_ShelterPet pet) {
+    if (pet.isAdopted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cannot edit "${pet.name}". Handover has already been completed for this adopted pet.'),
+            backgroundColor: Colors.purple.shade800,
+          ),
+        );
+      }
+      return;
+    }
+
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
     if (pet.fosterId.isNotEmpty && pet.fosterId != currentUid) {
       if (mounted) {
