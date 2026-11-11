@@ -30,6 +30,13 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
   String _selectedTypeFilter = 'all'; // 'all', 'stray', 'missing'
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  late final Stream<DatabaseEvent> _reportsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _reportsStream = FirebaseDatabase.instance.ref().child('reports').onValue;
+  }
 
   @override
   void dispose() {
@@ -907,9 +914,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
     final isDesktop = screenWidth > 900;
 
     return StreamBuilder<DatabaseEvent>(
-      stream: FirebaseDatabase.instance.ref().child('reports').onValue,
+      stream: _reportsStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator(color: AppTheme.primaryOrange));
         }
 
