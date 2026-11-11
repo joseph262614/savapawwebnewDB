@@ -810,8 +810,24 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                               );
                             },
                           ),
-                        // Edit Pet - allowed for authorized poster or admin
-                        if (isPoster)
+                        // Edit Pet - allowed for authorized poster or admin (locked if adopted)
+                        if (pet.isAdopted)
+                          Tooltip(
+                            message: 'Handover completed - Profile locked',
+                            child: IconButton(
+                              icon: Icon(Icons.lock, size: 18, color: Colors.purple.shade400),
+                              tooltip: 'Handover completed - Profile locked',
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Cannot edit "${pet.name}". Handover is completed and the profile is locked.'),
+                                    backgroundColor: Colors.purple.shade800,
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        else if (isPoster)
                           IconButton(
                             icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.black87),
                             tooltip: 'Edit Pet Info',
@@ -985,7 +1001,23 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                             );
                           },
                         ),
-                      if (isPoster)
+                      if (pet.isAdopted)
+                        Tooltip(
+                          message: 'Handover completed - Profile locked',
+                          child: TextButton.icon(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Cannot edit "${pet.name}". Handover is completed and the profile is locked.'),
+                                  backgroundColor: Colors.purple.shade800,
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.lock, size: 15, color: Colors.purple.shade400),
+                            label: Text('Locked', style: TextStyle(color: Colors.purple.shade400)),
+                          ),
+                        )
+                      else if (isPoster)
                         TextButton.icon(
                           onPressed: () => _showEditPetDialog(pet),
                           icon: const Icon(Icons.edit_outlined, size: 16),
@@ -1296,18 +1328,43 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                 children: [
                   OutlinedButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
                   const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _showEditPetDialog(pet);
-                    },
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Edit Details'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryOrange,
-                      foregroundColor: Colors.white,
+                  if (pet.isAdopted)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.purple.shade200),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.verified, size: 16, color: Colors.purple.shade700),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Handover Completed (Locked)',
+                            style: TextStyle(
+                              color: Colors.purple.shade800,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showEditPetDialog(pet);
+                      },
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text('Edit Details'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryOrange,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
@@ -1345,6 +1402,18 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
   }
 
   void _showEditPetDialog(_ShelterPet pet) {
+    if (pet.isAdopted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cannot edit "${pet.name}". Handover is completed and the profile is locked.'),
+            backgroundColor: Colors.purple.shade800,
+          ),
+        );
+      }
+      return;
+    }
+
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
     if (pet.fosterId.isNotEmpty && pet.fosterId != currentUid) {
       if (mounted) {
