@@ -1841,7 +1841,11 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
               setState(() {
                 _selectedReportForMap = report;
               });
-              final targetZoom = _mapZoom < 15.0 ? 15.5 : _mapZoom;
+              double currentZoom = 15.5;
+              try {
+                currentZoom = _mapController.camera.zoom;
+              } catch (_) {}
+              final targetZoom = currentZoom < 15.0 ? 15.5 : currentZoom;
               _mapController.move(point, targetZoom);
             },
             child: MouseRegion(
