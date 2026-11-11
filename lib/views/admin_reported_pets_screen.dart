@@ -22,6 +22,9 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
   bool _isMapView = false;
   bool _markerJustTapped = false;
   final MapController _mapController = MapController();
+  LatLng _mapCenter = const LatLng(14.5320, 121.0781);
+  double _mapZoom = 15.0;
+  bool _mapPositionInitialized = false;
   Map<String, dynamic>? _selectedReportForMap;
   String _selectedFilter = 'all'; // 'all', 'open', 'in progress', 'rescued', 'closed'
   String _selectedTypeFilter = 'all'; // 'all', 'stray', 'missing'
@@ -1810,7 +1813,6 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
 
   Widget _buildLiveMap(List<Map<String, dynamic>> filteredReports, bool isDesktop) {
     final List<Marker> markers = [];
-    LatLng centerPos = const LatLng(14.5320, 121.0781); // Metro East / Manila center
 
     for (final report in filteredReports) {
       final lat = (report['lat'] as num?)?.toDouble() ?? (report['latitude'] as num?)?.toDouble();
@@ -1824,7 +1826,6 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
       if (isRescued && _selectedFilter != 'rescued') continue;
 
       final point = LatLng(lat, lng);
-      centerPos = point;
       final color = _getStatusColor(report['status'] ?? 'Open');
       final isMissing = (report['isMissing'] == true || (report['reportType'] ?? '').toString().toLowerCase() == 'missing');
 
@@ -1840,6 +1841,8 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
               setState(() {
                 _selectedReportForMap = report;
               });
+              final targetZoom = _mapZoom < 15.0 ? 15.5 : _mapZoom;
+              _mapController.move(point, targetZoom);
             },
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
@@ -1866,6 +1869,11 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
       );
     }
 
+    if (!_mapPositionInitialized && markers.isNotEmpty) {
+      _mapCenter = markers.first.point;
+      _mapPositionInitialized = true;
+    }
+
     return Container(
       height: 600,
       clipBehavior: Clip.antiAlias,
@@ -1882,8 +1890,12 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: centerPos,
-              initialZoom: 13,
+              initialCenter: _mapCenter,
+              initialZoom: _mapZoom,
+              onPositionChanged: (pos, hasGesture) {
+                if (pos.center != null) _mapCenter = pos.center!;
+                if (pos.zoom != null) _mapZoom = pos.zoom!;
+              },
               onTap: (_, __) {
                 if (_markerJustTapped) {
                   _markerJustTapped = false;

@@ -1574,6 +1574,16 @@ class _AdminPetListingsScreenState extends State<AdminPetListingsScreen> {
                           onPressed: isSaving
                               ? null
                               : () async {
+                                  if (pet.isAdopted) {
+                                    Navigator.pop(ctx);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Cannot save "${pet.name}". Handover is completed and the profile is locked.'),
+                                        backgroundColor: Colors.purple.shade800,
+                                      ),
+                                    );
+                                    return;
+                                  }
                                   setDlgState(() => isSaving = true);
                                   try {
                                     await _db.ref().child('adoptionCenter').child(pet.id).update({

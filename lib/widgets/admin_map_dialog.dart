@@ -233,6 +233,9 @@ class _AdminMapDialogState extends State<AdminMapDialog> {
                     options: MapOptions(
                       initialCenter: _currentLocation,
                       initialZoom: _currentZoom,
+                      onPositionChanged: (pos, hasGesture) {
+                        if (pos.zoom != null) _currentZoom = pos.zoom!;
+                      },
                       onTap: widget.isPicker
                           ? (_, latLng) => setState(() => _currentLocation = latLng)
                           : (_, __) {
@@ -270,6 +273,8 @@ class _AdminMapDialogState extends State<AdminMapDialog> {
                                       setState(() {
                                         _showReportCard = true;
                                       });
+                                      final targetZoom = _currentZoom < 15.0 ? 15.5 : _currentZoom;
+                                      _mapController.move(_currentLocation, targetZoom);
                                     },
                                     child: MouseRegion(
                                       cursor: SystemMouseCursors.click,
