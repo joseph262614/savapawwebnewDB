@@ -574,9 +574,13 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
 
                           return Row(
                             children: [
-                              Text(
-                                otherName,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF2D3142)),
+                              Flexible(
+                                child: Text(
+                                  otherName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF2D3142)),
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Container(
@@ -1423,7 +1427,7 @@ class _AdminAdopterMessagesScreenState extends State<AdminAdopterMessagesScreen>
           children: [
             const Icon(Icons.assignment_turned_in, color: Color(0xFF2E7D32), size: 22),
             const SizedBox(width: 8),
-            Text('Signed Terms: $petName', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Expanded(child: Text('Signed Terms: $petName', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
           ],
         ),
         content: ConstrainedBox(

@@ -1390,7 +1390,7 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(petType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                            Flexible(child: Text(petType, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5))),
                             if (isMissing) ...[
                               const SizedBox(width: 6),
                               Container(
@@ -1425,9 +1425,13 @@ class _AdminReportedPetsScreenState extends State<AdminReportedPetsScreen> {
                             children: [
                               Icon(Icons.phone, size: 10, color: Colors.grey[700]),
                               const SizedBox(width: 2),
-                              Text(
-                                contactPhone,
-                                style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                              Flexible(
+                                child: Text(
+                                  contactPhone,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                                ),
                               ),
                             ],
                           ),

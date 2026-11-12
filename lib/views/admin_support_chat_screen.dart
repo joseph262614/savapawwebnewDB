@@ -1209,7 +1209,7 @@ class _AdminSupportChatScreenState extends State<AdminSupportChatScreen>
                     children: [
                       Row(
                         children: [
-                          Text(userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          Flexible(child: Text(userName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

@@ -640,7 +640,8 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
           const SizedBox(width: 16),
           // Admin info
-          Container(
+          Flexible(
+            child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: AppTheme.primaryOrange.withValues(alpha: 0.08),
@@ -651,12 +652,17 @@ class _AdminScreenState extends State<AdminScreen> {
               children: [
                 const Icon(Icons.admin_panel_settings, size: 18, color: AppTheme.primaryOrange),
                 const SizedBox(width: 6),
-                Text(
-                  authViewModel.user?.email ?? 'Admin',
-                  style: const TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w500),
+                Flexible(
+                  child: Text(
+                    authViewModel.user?.email ?? 'Admin',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13, color: AppTheme.primaryOrange, fontWeight: FontWeight.w500),
+                  ),
                 ),
               ],
             ),
+          ),
           ),
         ],
       ),
